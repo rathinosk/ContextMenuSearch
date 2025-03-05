@@ -1,0 +1,306 @@
+:root {
+    --main-bg-color: #333;
+    --secondary-bg-color: #444;
+    --text-color: #ccc;
+    --hover-text-color: #fff;
+    --border-color: #555;
+    --hover-border-color: #666;
+    --alt-row-bg-color: #444;
+    --button-bg-color: #444;
+    --button-hover-bg-color: #555;
+    --button-hover-text-color: #fff;
+    --link-color: #ff0;
+    --link-hover-color: #fff;
+}
+
+div.contain {
+    width: 860px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+div.left, div.right {
+    float: left;
+    width: 260px;
+    margin: 1% 0 1% 1%;
+    padding: 1%;
+    color: var(--text-color);
+}
+div.right {
+    float: right;
+    margin: 1% 1% 1% 0;
+}
+div.clear {
+    height: 0;
+    font-size: 1px;
+    margin: 0;
+    padding: 0;
+    line-height: 0;
+    clear: both;
+}
+
+button.top_options {
+    padding: 4px;
+    background-color: transparent;
+    border: none;
+    text-decoration: underline;
+    color: var(--text-color);
+}
+
+button.top_options:hover {
+    border: none;
+    color: var(--hover-text-color);
+    cursor: pointer;
+    text-decoration: none;
+    background-color: transparent;
+}
+
+body {
+    background: var(--main-bg-color);
+    font: 0.8em Verdana, Helvetica, sans-serif;
+    color: var(--text-color);
+    padding: 0 0 50px 0;
+}
+
+a {
+    color: var(--link-color);
+    text-decoration: none;
+}
+
+a:hover {
+    color: var(--link-hover-color);
+    text-decoration: underline;
+}
+
+/* Images */
+img {
+    padding: 8px;
+}
+img.title-image {
+    background: var(--secondary-bg-color);
+    border: 1px solid var(--border-color);
+    padding: 8px;
+}
+img.float-right {
+    margin: 5px 0px 10px 10px;
+}
+img.float-left {
+    margin: 5px 10px 10px 0px;
+}
+
+/* start - table */
+table {
+    border-collapse: collapse;
+    margin: 10px;
+}
+tr {
+    background: var(--main-bg-color);
+}
+tr.altrow {
+    background: var(--alt-row-bg-color);
+}
+th, td {
+    text-align: center;
+    border-width: 1px;
+    border-style: solid;
+}
+th {
+    color: var(--hover-text-color);
+    background: var(--border-color);
+    padding: .8em 1em;
+    border-color: var(--hover-border-color);
+}
+td {
+    border-color: var(--border-color);
+    padding: .7em 1em;
+}
+/* end - table */
+
+input, select, textarea {
+    margin: 5px 0;
+    padding: 5px;
+    color: #000;
+    border-width: 1px;
+    border-style: solid;
+    border-color: var(--border-color);
+    font: 0.8em Verdana, Helvetica, sans-serif;
+}
+input:focus, select:focus, textarea:focus {
+    color: var(--hover-text-color);
+    background: var(--secondary-bg-color);
+}
+input:hover, select:hover, textarea:hover {
+    background: var(--text-color);
+}
+
+.floatleft {
+    float: left;
+    padding: 1%;
+}
+
+/* list items */
+li {
+    width: 820px;
+    height: 40px;
+    list-style: none;
+    margin: 0;
+    background-color: var(--secondary-bg-color);
+    padding: 0;
+    color: var(--text-color);
+}
+
+li > div {
+    width: 820px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+}
+
+li > div > *:not(hr) {
+    display: inline-block;
+    vertical-align: top;
+    height: 20px;
+    width: 20px;
+    margin: 10px;
+}
+
+li > div > hr {
+    display: inline-block;
+    vertical-align: top;
+    width: 20px;
+    border: 1px solid var(--border-color);
+    margin: 10px;
+}
+
+li > div > img {
+    padding: 0;
+    margin-top: 11px;
+}
+
+li > div > span {
+    float: left;
+    height: 19px;
+    width: auto;
+    margin: 10px;
+}
+
+/* button styles */
+button {
+    padding: 8px 20px;
+    background-color: var(--button-bg-color);
+    text-decoration: underline;
+    border-width: 1px;
+    border-style: solid;
+    color: var(--text-color);
+    text-decoration: none;
+    border-radius: 50px;
+    border-color: var(--border-color);
+}
+button:hover {
+    background-color: var(--button-hover-bg-color);
+    color: var(--button-hover-text-color);
+    cursor: pointer;
+    border-width: 1px;
+    border-style: solid;
+    border-radius: 50px;
+    border-color: var(--hover-border-color);
+}
+
+/* checkbox style */
+.checkStyle {
+    width: 40px;
+}
+
+/* remove button style */
+.removeButtonStyle {
+    padding: 0;
+    border-radius: 4px;
+    width: 40px;
+}
+.removeButtonStyle:hover {
+    background-color: #ff0000;
+    color: white;
+    cursor: pointer;
+    border-width: 1px;
+    border-style: solid;
+    border-radius: 4px;
+}
+
+/* drag handle div style */
+.dragIcon {
+    width: 20px;
+    height: 20px;
+    background-image: url(drag_vertical_grey.svg);
+    background-size: 20px 20px;
+    background-repeat: no-repeat;
+    cursor: move;
+}
+
+/* list item input areas */
+.listItemName {
+    width: 140px;
+}
+
+.listItemLink {
+    width: 460px;
+}
+
+/* list item heading */
+.listHeading {
+    color: var(--hover-text-color);
+    background: var(--border-color);
+    border-color: var(--hover-border-color);
+}
+
+.scaled-cropped-img {
+    width: 16px;
+    height: 16px;
+    overflow: hidden;
+    display: inline-block;
+    border-radius: 16px;
+}
+
+/* tips */
+
+.tips-container {
+    background-color: var(--secondary-bg-color);
+    color: var(--text-color);
+    border-radius: 12px;
+    padding: 0px 0px 0px 0px !important;
+    margin: 0px 0px 0px 0px !important;
+    display: flex;
+}
+
+.tips-table {
+    background-color: transparent;
+    color: var(--text-color);
+    padding: 0px 0px 0px 0px !important;
+    margin: 0px 0px 0px 0px !important;
+    align-items: center;
+    border-collapse: collapse;
+    border: none;
+}
+
+.lightbulb {
+    vertical-align: middle;
+    border: none;
+    margin-left: 8px;
+    margin-right: 16px;
+    padding: 8px;
+    font-size: 32px;
+}
+
+.tips-tr {
+    padding: 0px;
+    border: none;
+    background-color: transparent;
+}
+
+.tips-td {
+    padding: 8px;
+    border: none;
+    background-color: transparent;
+    text-align: left;
+}
+

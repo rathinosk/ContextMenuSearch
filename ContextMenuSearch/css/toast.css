@@ -1,0 +1,55 @@
+/* 
+    CSS for Toast Messages
+*/
+:root {
+    --toast-bg-color: #444;
+    --toast-text-color: #fff;
+    --toast-border-color: #555;
+    --toast-animation-duration: 0.5s;
+    --toast-visible-duration: 2.5s;
+}
+
+/* Base style for the toast */
+#toast {
+    visibility: hidden;
+    margin-left: -125px;
+    background-color: var(--toast-bg-color);
+    color: var(--toast-text-color);
+    text-align: center;
+    border-radius: 4px;
+    padding: 16px;
+    position: fixed;
+    z-index: 1;
+    left: 50%;
+    bottom: 30px;
+    font-size: 15px;
+    border: 1px solid var(--toast-border-color);
+}
+
+/* Show the toast */
+#toast.show {
+    visibility: visible;
+    -webkit-animation: fadein var(--toast-animation-duration), fadeout var(--toast-animation-duration) var(--toast-visible-duration);
+    animation: fadein var(--toast-animation-duration), fadeout var(--toast-animation-duration) var(--toast-visible-duration);
+}
+
+/* Animations to fade in and fade out the toast */
+@-webkit-keyframes fadein {
+    from {bottom: 0; opacity: 0;}
+    to {bottom: 30px; opacity: 1;}
+}
+
+@keyframes fadein {
+    from {bottom: 0; opacity: 0;}
+    to {bottom: 30px; opacity: 1;}
+}
+
+@-webkit-keyframes fadeout {
+    from {bottom: 30px; opacity: 1;}
+    to {bottom: 0; opacity: 0;}
+}
+
+@keyframes fadeout {
+    from {bottom: 30px; opacity: 1;}
+    to {bottom: 0; opacity: 0;}
+}

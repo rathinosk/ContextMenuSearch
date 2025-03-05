@@ -1,0 +1,36 @@
+name: Package Chrome Extension
+
+on:
+  workflow_dispatch:
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.2.2
+
+      - name: Install jq
+        run: sudo apt-get install -y jq
+
+      - name: Get version from manifest.json
+        id: get_version
+        run: |
+          VERSION=$(jq -r '.version' manifest.json)
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "Extracted version: ${{ env.VERSION }}"
+
+      - name: Upload a Build Artifact
+        uses: actions/upload-artifact@v4.6.1
+        with:
+          name: ContextMenuSearch-${{ env.VERSION }}.zip
+          path: |
+            *.*
+            LICENSE
+            css/**
+            images/**
+            js/**
+            _locales/**
+            !.git/**
+            !.github/**

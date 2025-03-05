@@ -1,0 +1,7 @@
+*.zip
+*.7z
+*.psd
+*.pem
+
+.junk/
+dist/
