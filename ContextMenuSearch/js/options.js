@@ -269,38 +269,44 @@ function resetdefault() {
  * Add options from a predefined list.
  */
 async function add_from_list() {
-	var numoptions = document.getElementById("numoptions").value;
+    try {
+        var numoptions = document.getElementById("numoptions").value;
 
-	for(var j=1; j<=numoptions; j++) {
-		if(document.getElementById("s"+j).checked) {
-			var nname = document.getElementById("names"+j).value;
-			var nlink = document.getElementById("links"+j).value;
-		
-			var stringified = await getItem("_allSearch");
-			var parsedArray = JSON.parse(stringified);
+        for (var j = 1; j <= numoptions; j++) {
+            var checkbox = document.getElementById("s" + j); // Get the checkbox element
+            if (checkbox && checkbox.checked) { // Check if the element exists and is checked
+                var nname = document.getElementById("names" + j).value;
+                var nlink = document.getElementById("links" + j).value;
 
-			var length = (parsedArray?.length ?? 0);
-			var newoptions = new Array(length + 1);
+                var stringified = await getItem("_allSearch");
+                var parsedArray = JSON.parse(stringified);
 
-			for(var i=0; i<length; i++) {
-				newoptions[i] = new Array(4);
-				newoptions[i] = parsedArray[i].slice(0);
-			}
-			
-			newoptions[i] = new Array(4);
-			newoptions[i][0] = "-1";
-			newoptions[i][1] = nname;
-			newoptions[i][2] = nlink;
-			newoptions[i][3] = true;
-			
-			var newstring = JSON.stringify(newoptions);
-			await setItem("_allSearch", newstring);
-			document.getElementById("s"+j).checked = false;
-		}
-	}
+                var length = (parsedArray?.length ?? 0);
+                var newoptions = new Array(length + 1);
 
-	showToast("New Items Added");
-	setTimeout(function() {showpage(2);}, 1250);
+                for (var i = 0; i < length; i++) {
+                    newoptions[i] = new Array(4);
+                    newoptions[i] = parsedArray[i].slice(0);
+                }
+
+                newoptions[i] = new Array(4);
+                newoptions[i][0] = "-1";
+                newoptions[i][1] = nname;
+                newoptions[i][2] = nlink;
+                newoptions[i][3] = true;
+
+                var newstring = JSON.stringify(newoptions);
+                await setItem("_allSearch", newstring);
+                document.getElementById("s" + j).checked = false;
+            }
+        }
+
+        showToast("New Items Added");
+        setTimeout(function () { showpage(2); }, 1250);
+    } catch (error) {
+        console.error('Error in add_from_list:', error);
+        showToast('An error occurred while adding search engines.');
+    }
 }
 
 /**

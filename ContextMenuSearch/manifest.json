@@ -13,7 +13,7 @@
    "background": {
       "service_worker": "js/background.js"
    },
-   "permissions": [ "contextMenus", "storage", "tab" ],
+   "permissions": [ "contextMenus", "storage", "tabs" ],
    "options_page": "options.html",
    "web_accessible_resources": [
       {
