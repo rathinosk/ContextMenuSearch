@@ -17,5 +17,6 @@
 ## Naming Conventions
 - Use camelCase for variable and function names.
 - Use PascalCase for class names.
+- Use camelCase for class properties and methods.
 - Use UPPER_CASE for constants.
 

@@ -7,9 +7,10 @@
 		<script type="text/javascript" src="./js/jquery-3.7.1.min.js"></script>
 		<script type="text/javascript" src="./js/jquery-ui-1.14.1.min.js"></script>
 
-		<script src="./js/chromeStorage.js"></script>
-		<script src="./js/options.js"></script>
-		<script src="./js/searchEngineList.js"></script>
+		 <!-- Include JavaScript files as modules -->
+		<script src="js/chromeStorage.js"></script>
+		<script src="js/options.js"></script>
+		<script src="js/searchEngineList.js"></script>
 	</head>
 	<body>
 		<div class="contain">
@@ -97,9 +98,9 @@
 					</button>
 					<div id="status_addmanually"></div>
 
-					<h3><i>Or</i>
+					<h3><i>OR</i>
 					<br />
-					Pick from the following:</h3>
+					Choose fron the following pre-defined search engines:</h3>
 					<div id="searchEngineList">
 						<!-- Search engine list will be generated here -->
 					</div>
@@ -127,56 +128,66 @@
 					<br>
 
 					<button id="save_options">
-						Save new config
+						Save Configuration
 					</button>
 					<button id="add_separator">
-						Add Separator
+						Add Menu Separator
 					</button>
 					<div id="status"></div>
 
 				</div>
 
 				<div id="page3" style="display:none">
-					<h3>Search results options</h3>
+					<h3>Search Results Options</h3>
 					<table>
 						<tr>
 							<td>
-							<input type="checkbox" id="ask_bg">
-							</td><td>Open results in a background tab</td>
+								<input type="checkbox" id="ask_bg">
+							</td>
+							<td>Always open search results in a background tab</td>
 						</tr>
 						<tr>
 							<td>
-							<input type="checkbox" id="ask_next">
-							</td><td>The new tab should be next to the current tab</td>
+								<input type="checkbox" id="ask_next">
+							</td>
+							<td>Always open the new search tab next to the current tab</td>
 						</tr>
 						<tr>
 							<td>
 								<input type="checkbox" id="ask_options">
-							</td><td>Show link to extension options at the end of context menu</td>
+							</td>
+							<td>Show a link to extension options at the bottom of the context menu</td>
 						</tr>
 					</table>
 					<button id="save_otheroptions">
-						Save
+						Save Options
 					</button>
 					<div id="status_otheroptions"></div>
-					<h3>Export/Import search options</h3>
-					<textarea id="exporttext" cols="110" rows="12"></textarea>
+
+					<h3>Export/Import Search Options (JSON)</h3>
+					<textarea id="exporttext" cols="132" rows="15" style="height: 250px; width: 800px;"></textarea>
 					<br />
-					Use the above string to transfer your search engine options from one install of Chrome to another effortlessly.
-					<br />
-					Just copy the string from here to the options page in other install of chrome (or vice-versa)	and press 'Save'
-					<br />
-					Warning: Editing the above string may cause unexpected behaviour!
+					<p>
+						Use the JSON string above to transfer your search engine configuration between different 
+						installations of Chrome. Simply copy the string from this text area and paste it into the options
+						page of the other Chrome installation. Then, press the 'Save Configuration' button below.
+						<br /> 
+						<b>Note: Ensure the JSON format is not altered to avoid unexpected behavior.</b>
+						</p>
 					<br />
 					<button id="save_import">
-						Save
+						Save Configuration
 					</button>
 					<div id="status_import"></div>
-
-					<h3>Recover</h3>
-					<textarea id="exporttext_old" cols="110" rows="12" readonly></textarea>
+					<br /><br />
+					<h3>Reset Configuration</h3>
+					<p>
+						Click the button below to reset all options to the default values.
+					</p>
 					<br />
-					In case you lost your previously configured search engine options after the recent updates, you can restore them by copying from here to the textbox above.
+					<button id="resetdefault">
+						Reset Configuration
+					</button>
 					<br />
 				</div>
 
@@ -184,24 +195,40 @@
 
 					<div class="contain">
 						<h2>About Context Menu Search</h2>
+						<h3>
+							Version 1.0.1
+						</h3>
 						<p>
 							Developer: <a href="https://rathinosk.com/" target="_blank">Rathinosk</a>
 							|
-							<a href="https://chromewebstore.google.com/detail/context-menu-search/jiemcgfaaankhcphdbfbilkldedojieb?hl=en" target="_blank">Extension home</a>
+							<a href="https://chromewebstore.google.com/detail/context-menu-search/jiemcgfaaankhcphdbfbilkldedojieb?hl=en" target="_blank">Chrome Web Store Page</a>
 						</p>
 						<br />
 						<p>
 							Context Menu Search is a simple extension that allows you to search selected text with a search engine of your choice.<br />
-							This extension does not communicate with any websites or services.
+							This extension does not communicate with any websites or services -- only the search engine you choose is contacted.
 						</p>
 						<div align="left">
 							<h4>Change-log</h4>
 							<p>
-								<b>4.00</b>: This is a major update with new features and improvements.
+								<b>1.0.1</b>: Minor bug-fixes and improvements.
+								<ul>
+									<li>Improved error handling and increased console logging.</li>
+									<li>Added a new option to reset all options to the default values.</li>
+								</ul>
 							</p>
 							<br />
 							<p>
-								<b>3.xx</b>: Internal working versions with refactoring and bug-fixes to the original (v2.99) Context Menu Search extension.<br/>
+								<b>1.0.0</b>: This is the first public release -- a major update with numerous bug fixes, new features and improvements.<br />
+								<ul>
+									<li>Revamped tab handler -- fixed bug where search did not work from within a PDF viewer tab.</li>
+									<li>Fixed multiple scenarios that caused the extension to not load the configuration. Reloading will generally fix most configuration loading problems.</li>
+									<li>Fixed the option to show "Options..." at the bottom of the context menu.</li>
+								</ul>
+							</p>
+							<br />
+							<p>
+								<b>pre-1.0.0</b>: Internal working versions with refactoring and bug-fixes to the original (v2.99) Context Menu Search extension.<br/>
 								<i>These versions were not released to the Chrome Web Store.</i>
 
 							</p>

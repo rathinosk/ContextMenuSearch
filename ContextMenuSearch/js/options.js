@@ -1,10 +1,33 @@
 /**
+ * ContextMenuSearch Options Page
+ *
+ * This file contains the JavaScript code for the options page of the ContextMenuSearch extension.
+ * It handles the initialization of the options page, saving and restoring options,
+ * and adding new search engines.
+ */
+
+/**
+ * log
+ * Log a message to the console with a timestamp.
+ * @param {string} txt - The message to log.
+ */
+function log(txt) {
+    try {
+        let now = new Date();
+        console.log(now.toLocaleTimeString() + ": " + txt);
+    } catch (e) {
+        console.error("Error during logging: ", e);
+    }
+}
+
+/**
  * initializeOptions
  * Initialize the options page.
  */
-async function initializeOptions(){
-	showpage(1);
-	await restore_options();
+async function initializeOptions() {
+    log("initializeOptions: Initializing options page.");
+    showpage(1);
+    await restoreOptions();
 }
 
 /**
@@ -12,7 +35,7 @@ async function initializeOptions(){
  * Listen for changes in Chrome storage and restore options.
  */
 chrome.storage.onChanged.addListener(async (changes) => {
-    await restore_options();
+    await restoreOptions();
 });
 
 /**
@@ -21,110 +44,194 @@ chrome.storage.onChanged.addListener(async (changes) => {
  * @param {string} message - The message to display in the toast.
  */
 function showToast(message) {
-    var toast = document.getElementById("toast");
+    const toast = document.getElementById("toast");
     toast.className = "show";
     toast.innerHTML = message;
-    setTimeout(function() { toast.className = toast.className.replace("show", ""); }, 3000);
+    setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 3000);
 }
 
 /**
- * save_import
- * Save imported configuration.
+ * validateSearchEngineJson
+ * Validates the structure of the search engine JSON to ensure it matches the expected format.
+ * @param {string} jsonString - The JSON string to validate.
+ * @returns {boolean} - True if the JSON is valid, false otherwise.
  */
-async function save_import() {
-	await setItem("_allSearch", document.getElementById("exporttext").value);
-	var status = document.getElementById("status_import");
-	showToast("New Configuration Imported");
+function validateSearchEngineJson(jsonString) {
+    try {
+        const parsedArray = JSON.parse(jsonString);
+
+        if (!Array.isArray(parsedArray)) {
+            log("validateSearchEngineJson: JSON is not an array.");
+            return false;
+        }
+
+        for (const item of parsedArray) {
+            if (!Array.isArray(item)) {
+                log("validateSearchEngineJson: Item is not an array.");
+                return false;
+            }
+
+            if (item.length !== 4) {
+                log("validateSearchEngineJson: Item length is not 4.");
+                return false;
+            }
+
+            if (typeof item[0] !== 'string' || typeof item[1] !== 'string' || typeof item[2] !== 'string' || typeof item[3] !== 'boolean') {
+                log("validateSearchEngineJson: Item types are incorrect.");
+                return false;
+            }
+        }
+
+        log("validateSearchEngineJson: JSON is valid.");
+        return true;
+    } catch (error) {
+        log(`validateSearchEngineJson: JSON parsing error: ${error}`);
+        return false;
+    }
+}
+
+
+
+/**
+ * saveImport
+ * Save imported configuration after validating the JSON.
+ */
+async function saveImport() {
+    log("saveImport: Saving imported configuration.");
+    const exportText = document.getElementById("exporttext").value;
+
+    if (!validateSearchEngineJson(exportText)) {
+        showToast("Invalid Search Engine JSON Format");
+        return;
+    }
+
+    try {
+        await setItem("_allSearch", exportText);
+        showToast("New Configuration Imported");
+    } catch (error) {
+        log(`saveImport: Invalid JSON: ${error}`);
+        showToast("Invalid JSON Configuration");
+    }
 }
 
 /**
- * save_otheroptions
+ * saveOtherOptions
  * Save other options.
  */
-async function save_otheroptions() {	
-	var ask_bg = document.getElementById("ask_bg").checked;
-	var ask_next = document.getElementById("ask_next").checked;
-	var ask_options = document.getElementById("ask_options").checked;
+async function saveOtherOptions() {
+    log("saveOtherOptions: Saving other options.");
+    const askBg = document.getElementById("ask_bg").checked;
+    const askNext = document.getElementById("ask_next").checked;
+    const askOptions = document.getElementById("ask_options").checked;
 
-	await setItem("_askBg", ask_bg);
-	await setItem("_askNext", ask_next);
-	await setItem("_askOptions", ask_options);
+    await setItem("_askBg", askBg);
+    await setItem("_askNext", askNext);
+    await setItem("_askOptions", askOptions);
 
-	var status = document.getElementById("status_otheroptions");
-	showToast("Options Saved");
+    showToast("Options Saved");
 }
 
 /**
- * save_options
+ * saveOptions
  * Save all options.
  */
-async function save_options() {
-	var optionsList = document.getElementById("options_list_ul");
-	var maxindex = optionsList.childElementCount;
-	var _all = new Array(maxindex);
-	
-	for(var i=0; i<maxindex; i++) {
-		curnum = optionsList.children[i].getAttribute('index');
-		var itemNode = optionsList.children[i];
+async function saveOptions() {
+    log("saveOptions: Saving all options.");
+    const optionsList = document.getElementById("options_list_ul");
+    const maxIndex = optionsList.childElementCount;
+    const allOptions = new Array(maxIndex);
 
-		const title = itemNode.querySelector("#listItemName"+curnum)?.value ?? "";
-		const link = itemNode.querySelector("#listItemLink"+curnum)?.value ?? "";
-		var isEnabled = itemNode.querySelector("#listItemEnab"+curnum)?.checked ?? false;
+    for (let i = 0; i < maxIndex; i++) {
+        const curNum = optionsList.children[i].getAttribute('index');
+        const itemNode = optionsList.children[i];
 
-        _all[i] = new Array(4);
-        _all[i][0] = "-1";
-        _all[i][1] = title;
-        _all[i][2] = link;
-        _all[i][3] = isEnabled;
-	}
-	
-	var stringified = JSON.stringify(_all);
-	await setItem("_allSearch", stringified);
-	
-	var ask_bg = document.getElementById("ask_bg").checked;
-	var ask_next = document.getElementById("ask_next").checked;
-	
-	await setItem("_askBg", ask_bg);
-	await setItem("_askNext", ask_next);
-	
-	var status = document.getElementById("status");
-	showToast("Options Saved");
+        const title = itemNode.querySelector(`#listItemName${curNum}`)?.value ?? "";
+        const link = itemNode.querySelector(`#listItemLink${curNum}`)?.value ?? "";
+        const isEnabled = itemNode.querySelector(`#listItemEnab${curNum}`)?.checked ?? false;
+
+        allOptions[i] = ["-1", title, link, isEnabled];
+    }
+
+    const stringified = JSON.stringify(allOptions);
+    await setItem("_allSearch", stringified);
+
+    const askBg = document.getElementById("ask_bg").checked;
+    const askNext = document.getElementById("ask_next").checked;
+
+    await setItem("_askBg", askBg);
+    await setItem("_askNext", askNext);
+
+    showToast("Options Saved");
 }
 
 /**
- * restore_options
- * Restore options from storage.
+ * compactJson
+ * Takes a raw JSON object, and produces a collapsed version of it.
+ * This is useful for displaying JSON objects with many nested levels in a more readable format.
+ * @param {string} json - The JSON object to collapse.
+ * @returns {string} - The collapsed JSON object as a string.
  */
-async function restore_options() {
-	var optionsList = document.getElementById("options_list_ul");
-	optionsList.innerHTML = "";
-	var stringified = await getItem("_allSearch");
-	
-	document.getElementById("exporttext").value = stringified;
-	var parsedArray = JSON.parse(stringified) || [];
-	
-	for(var i=0; i<parsedArray.length; i++) {
-	    const item = parsedArray[i];
+function compactJson(json) {
+    try {
+        const parsedJson = JSON.parse(json);
+        if (!Array.isArray(parsedJson)) {
+            throw new Error("Invalid JSON format: Expected an array.");
+        }
 
-	    if(item && item.length == 4 && item[1] != "" && item[2] != "") {
-	        add_item(item);
-	    } else {
-	        add_separator(item);
-	    }
-	}
-	
-	var ask_bg = await getItem("_askBg");
-	var ask_next = await getItem("_askNext");
-	var ask_options = await getItem("_askOptions");
+        const formattedJson = parsedJson.map(item => `    ${JSON.stringify(item)}`).join(',\n');
+        return `[\n${formattedJson}\n]`;
+    } catch (error) {
+        log(`compactJson: Error processing JSON: ${error}`);
+        return json; // Return the original JSON string if an error occurs
+    }
+}
 
-	console.log(ask_bg)
+/**
+ * restoreOptions
+ * Restore options from storage and format the JSON for the "exporttext" box.
+ */
+async function restoreOptions() {
+    
+    log("restoreOptions: Restoring options from storage.");
+    const optionsList = document.getElementById("options_list_ul");
+    optionsList.innerHTML = "";
 
-	if(isTrue(ask_bg)) document.getElementById("ask_bg").checked = "true";
-	if(isTrue(ask_next)) document.getElementById("ask_next").checked = "true";
-	if(isTrue(ask_options)) document.getElementById("ask_options").checked = "true";
+    const rawConfigJson = await getItem("_allSearch");
+    //log(`restoreOptions: Raw JSON: ${rawConfigJson}`);
 
-    const old_search_items = window.localStorage.getItem("_allsearch");
-	document.getElementById("exporttext_old").value = old_search_items;
+    try {
+        // Attempt to format the JSON for better readability
+        const formattedJson = compactJson(rawConfigJson);
+        //log(`restoreOptions: Formatted JSON: ${formattedJson}`);
+
+        // Display the formatted JSON in the export text box
+        document.getElementById("exporttext").value = formattedJson;
+    } catch (error) {
+        // If formatting fails (e.g., invalid JSON), fall back to the original string
+        log(`restoreOptions: Error formatting JSON: ${error}`);
+        document.getElementById("exporttext").value = rawConfigJson;
+    }
+
+    const parsedArray = JSON.parse(rawConfigJson) || [];
+    //log(`restoreOptions: Parsed JSON: ${parsedArray}`);
+
+    for (const item of parsedArray) {
+        if (item && item.length === 4 && item[1] !== "" && item[2] !== "") {
+            addItem(item);
+        } else {
+            addSeparator(item);
+        }
+    }
+
+    const askBg = await getItem("_askBg");
+    const askNext = await getItem("_askNext");
+    const askOptions = await getItem("_askOptions");
+
+    if (isTrue(askBg)) document.getElementById("ask_bg").checked = true;
+    if (isTrue(askNext)) document.getElementById("ask_next").checked = true;
+    if (isTrue(askOptions)) document.getElementById("ask_options").checked = true;
+
+    log("restoreOptions: Options restored from storage.");
 }
 
 /**
@@ -140,46 +247,46 @@ function isTrue(value) {
 /**
  * remove
  * Remove an item from the list.
- * @param {number} j - The index of the item to remove.
+ * @param {number} index - The index of the item to remove.
  */
-function remove(j) {
-	var listOfSearchOptions = document.getElementById("options_list_ul");
-	var listItemToRemove = document.getElementById("listItem"+j);
-	console.log("Removing item with index: " + j, listItemToRemove);
-	listOfSearchOptions.removeChild(listItemToRemove);
+function remove(index) {
+    log(`remove: Removing item at index ${index}.`);
+    const listOfSearchOptions = document.getElementById("options_list_ul");
+    const listItemToRemove = document.getElementById(`listItem${index}`);
+    listOfSearchOptions.removeChild(listItemToRemove);
 }
 
 /**
  * createListItem
  * Create a new list item.
- * @param {number} curnum - The current index number.
+ * @param {number} curNum - The current index number.
  * @param {boolean} isSeparator - Whether the item is a separator.
  * @returns {HTMLElement} - The new list item element.
  */
-function createListItem(curnum, isSeparator) {
-    var newListItem = document.createElement('li');
-    newListItem.setAttribute('index', curnum);
-    newListItem.setAttribute('id', 'listItem' + curnum);
+function createListItem(curNum, isSeparator) {
+    const newListItem = document.createElement('li');
+    newListItem.setAttribute('index', curNum);
+    newListItem.setAttribute('id', `listItem${curNum}`);
 
-    var innerHTML = `
+    const innerHTML = `
         <div align='center'>
             <div class='dragIcon' style='width:20px;'></div>
             ${isSeparator ? `
                 <hr style='width:138px;'></hr>
                 <hr style='width:458px;'></hr>
             ` : `
-                <input type='text' class='listItemName' id='listItemName${curnum}' size='20' maxlength='30'>
-                <input type='text' class='listItemLink' id='listItemLink${curnum}' size='80' maxlength='5000'>
+                <input type='text' class='listItemName' id='listItemName${curNum}' size='20' maxlength='30'>
+                <input type='text' class='listItemLink' id='listItemLink${curNum}' size='80' maxlength='5000'>
             `}
-            <input type='checkbox' class='checkStyle' id='listItemEnab${curnum}' style='width:40px;'}>
-            <button index='${curnum}' class='removeButtonStyle' id='listItemRemoveButton${curnum}' style='width:40px;'>X</button>
+            <input type='checkbox' class='checkStyle' id='listItemEnab${curNum}' style='width:40px;'>
+            <button index='${curNum}' class='removeButtonStyle' id='listItemRemoveButton${curNum}' style='width:40px;'>X</button>
         </div>
     `;
     newListItem.innerHTML = innerHTML;
 
     // Add event listener to the remove button
-    newListItem.querySelector(`#listItemRemoveButton${curnum}`).addEventListener('click', function(event) {
-        var index = event.target.getAttribute('index');
+    newListItem.querySelector(`#listItemRemoveButton${curNum}`).addEventListener('click', function(event) {
+        const index = event.target.getAttribute('index');
         remove(index);
     });
 
@@ -187,124 +294,133 @@ function createListItem(curnum, isSeparator) {
 }
 
 /**
- * add_item
+ * addItem
  * Add a new item to the list.
  * @param {Array} item - The item to add.
  */
-function add_item(item) {
-    var optionsList = document.getElementById('options_list_ul');
-    var curnum = optionsList.childElementCount;
-    var newListItem = createListItem(curnum, false);
+function addItem(item) {
+    log("addItem: Adding a new item to the list.");
+    const optionsList = document.getElementById('options_list_ul');
+    const curNum = optionsList.childElementCount;
+    const newListItem = createListItem(curNum, false);
     optionsList.appendChild(newListItem);
 
     // Set data to the new list item using querySelector
-    newListItem.querySelector("#listItemName" + curnum).value = item[1];
-    newListItem.querySelector("#listItemLink" + curnum).value = item[2];
-    if (item[3]) newListItem.querySelector("#listItemEnab" + curnum).checked = item[3];
+    newListItem.querySelector(`#listItemName${curNum}`).value = item[1];
+    newListItem.querySelector(`#listItemLink${curNum}`).value = item[2];
+    if (item[3]) newListItem.querySelector(`#listItemEnab${curNum}`).checked = item[3];
 }
 
 /**
- * add_separator
+ * addSeparator
  * Add a separator to the list.
  * @param {Array} item - The item to add as a separator.
  */
-function add_separator(item) {
-    var optionsList = document.getElementById('options_list_ul');
-    var curnum = optionsList.childElementCount;
-    var newListItem = createListItem(curnum, true);
+function addSeparator(item) {
+    log("addSeparator: Adding a separator to the list.");
+    const optionsList = document.getElementById('options_list_ul');
+    const curNum = optionsList.childElementCount;
+    const newListItem = createListItem(curNum, true);
     optionsList.appendChild(newListItem);
 
     item = item || ["-1", "", "", true];
 
     // Set data to the new list item using querySelector
-    if (item[3]) newListItem.querySelector("#listItemEnab" + curnum).checked = item[3];
+    if (item[3]) newListItem.querySelector(`#listItemEnab${curNum}`).checked = item[3];
 }
 
 /**
- * add_option
+ * addOption
  * Add a new option manually.
  */
-async function add_option() {
-	var nname = document.getElementById("newname").value;
-	var nlink = document.getElementById("newlink").value;
+async function addOption() {
+    log("addOption: Adding a new option manually.");
+    const newName = document.getElementById("newname").value;
+    const newLink = document.getElementById("newlink").value;
 
-	var stringified = await getItem("_allSearch");
-	var parsedArray = JSON.parse(stringified);
+    const stringified = await getItem("_allSearch");
+    const parsedArray = JSON.parse(stringified);
 
-    var length = (parsedArray?.length ?? 0);
-    var newoptions = new Array(length + 1);
+    const length = (parsedArray?.length ?? 0);
+    const newOptions = new Array(length + 1);
 
-    for(var i=0; i<length; i++) {
-		newoptions[i] = new Array(4);
-		newoptions[i] = parsedArray[i].slice(0);
-	}
-	
-	newoptions[i] = new Array(4);
-	newoptions[i][0] = "-1";
-	newoptions[i][1] = nname;
-	newoptions[i][2] = nlink;
-	newoptions[i][3] = true;
-	
-	var newstring = JSON.stringify(newoptions);
-	await setItem("_allSearch", newstring);
-	
-	document.getElementById("newname").value = "";
-	document.getElementById("newlink").value = "";
-	var status = document.getElementById("status_addmanually");
-	showToast("New Item Added");
-	setTimeout(function() {showpage(2);}, 1250);
+    for (let i = 0; i < length; i++) {
+        newOptions[i] = parsedArray[i].slice(0);
+    }
+
+    newOptions[length] = ["-1", newName, newLink, true];
+
+    const newString = JSON.stringify(newOptions);
+    await setItem("_allSearch", newString);
+
+    document.getElementById("newname").value = "";
+    document.getElementById("newlink").value = "";
+    showToast("New Item Added");
+    setTimeout(() => { showpage(2); }, 1250);
 }
 
 /**
- * resetdefault
+ * resetDefault
  * Reset to default options.
  */
-function resetdefault() {
-	clearStrg();
-	restore_options();
+function resetDefault() {
+    
+    const DEFAULT_CONFIG = '[["-1","YouTube","http://www.youtube.com/results?search_query=TESTSEARCH",true],["-1","Bing","http://www.bing.com/search?q=TESTSEARCH",true],["-1","Bing Images","http://www.bing.com/images/search?q=TESTSEARCH",true],["-1","IMDB","http://www.imdb.com/find?s=all&q=TESTSEARCH",true],["-1","Wikipedia","http://en.wikipedia.org/wiki/Special:Search?search=TESTSEARCH&go=Go",true],["-1","Yahoo!","http://search.yahoo.com/search?vc=&p=TESTSEARCH",true],["-1","Maps","https://www.google.com/maps/search/TESTSEARCH",true]]';
+
+    log("resetDefault: Resetting to default options.");
+
+    // clearChromeStorage();
+    
+    chrome.storage.local.set({ _allSearch: DEFAULT_CONFIG }, () => {
+        if (chrome.runtime.lastError) {
+            log(`resetDefault: Error setting default configuration: ${chrome.runtime.lastError}`);
+            showToast('Error resetting default configuration.');
+        } else {
+            log('resetDefault: Default configuration set.');
+            showToast('Options reset to default.');
+            restoreOptions(); // Reload options to reflect the reset
+        }
+    });
+
 }
 
 /**
- * add_from_list
+ * addFromList
  * Add options from a predefined list.
  */
-async function add_from_list() {
+async function addFromList() {
+    log("addFromList: Adding options from a predefined list.");
     try {
-        var numoptions = document.getElementById("numoptions").value;
+        const numOptions = document.getElementById("numoptions").value;
 
-        for (var j = 1; j <= numoptions; j++) {
-            var checkbox = document.getElementById("s" + j); // Get the checkbox element
-            if (checkbox && checkbox.checked) { // Check if the element exists and is checked
-                var nname = document.getElementById("names" + j).value;
-                var nlink = document.getElementById("links" + j).value;
+        for (let j = 1; j <= numOptions; j++) {
+            const checkbox = document.getElementById(`s${j}`);
+            if (checkbox && checkbox.checked) {
+                const newName = document.getElementById(`names${j}`).value;
+                const newLink = document.getElementById(`links${j}`).value;
 
-                var stringified = await getItem("_allSearch");
-                var parsedArray = JSON.parse(stringified);
+                const stringified = await getItem("_allSearch");
+                const parsedArray = JSON.parse(stringified);
 
-                var length = (parsedArray?.length ?? 0);
-                var newoptions = new Array(length + 1);
+                const length = (parsedArray?.length ?? 0);
+                const newOptions = new Array(length + 1);
 
-                for (var i = 0; i < length; i++) {
-                    newoptions[i] = new Array(4);
-                    newoptions[i] = parsedArray[i].slice(0);
+                for (let i = 0; i < length; i++) {
+                    newOptions[i] = parsedArray[i].slice(0);
                 }
 
-                newoptions[i] = new Array(4);
-                newoptions[i][0] = "-1";
-                newoptions[i][1] = nname;
-                newoptions[i][2] = nlink;
-                newoptions[i][3] = true;
+                newOptions[length] = ["-1", newName, newLink, true];
 
-                var newstring = JSON.stringify(newoptions);
-                await setItem("_allSearch", newstring);
-                document.getElementById("s" + j).checked = false;
+                const newString = JSON.stringify(newOptions);
+                await setItem("_allSearch", newString);
+                document.getElementById(`s${j}`).checked = false;
             }
         }
 
         showToast("New Items Added");
-        setTimeout(function () { showpage(2); }, 1250);
+        setTimeout(() => { showpage(2); }, 1250);
     } catch (error) {
-        console.error('Error in add_from_list:', error);
+        log(`addFromList: Error adding items from list: ${error}`);
         showToast('An error occurred while adding search engines.');
     }
 }
@@ -315,67 +431,34 @@ async function add_from_list() {
  * @param {number} page - The page number to show.
  */
 function showpage(page) {
-	for(var i=1; i<=4; i++) {
-		if(i==page) document.getElementById("page"+i).style.display = "block";
-		else document.getElementById("page"+i).style.display = "none";
-	}	
+    log(`showpage: Showing page ${page}.`);
+    for (let i = 1; i <= 4; i++) {
+        document.getElementById(`page${i}`).style.display = (i === page) ? "block" : "none";
+    }
 }
 
 /**
  * Document ready function
  * Initialize the options page and set up event listeners.
  */
-$(document).ready(function(){ 
-	generateSearchEngineList();
+$(document).ready(function() {
+    generateSearchEngineList();
     initializeOptions();
-	$(function() {
-		$("#options_list_ul").sortable({ opacity: 0.3, cursor: 'move', update: function() {
-			console.log("Reordered");
-		}});
-		
-		$("#showpage_1").click(function() {
-		  showpage(1);
-		});
-		
-		$("#showpage_2").click(function() {
-		  showpage(2);
-		});	
-		
-		$("#showpage_3").click(function() {
-		  showpage(3);
-		});	
-		
-		$("#showpage_4").click(function() {
-		  showpage(4);
-		});
-		
-		$("#add_option").click(function() {
-		  add_option();
-		});
-		
-		$("#add_from_list").click(function() {
-		  add_from_list();
-		});
-		
-		$("#save_options").click(function() {
-		  save_options();
-		});
+    $(function() {
+        $("#options_list_ul").sortable({ opacity: 0.3, cursor: 'move', update: function() {
+            log("$(document).ready: Reordered options list.");
+        }});
 
-		$("#add_separator").click(function() {
-		  add_separator();
-		});
-
-		$("#resetdefault").click(function() {
-		  resetdefault();
-		});
-		
-		$("#save_otheroptions").click(function() {
-		  save_otheroptions();
-		});
-		
-		$("#save_import").click(function() {
-		  save_import();
-		});
-		
-	});
+        $("#showpage_1").click(() => { showpage(1); });
+        $("#showpage_2").click(() => { showpage(2); });
+        $("#showpage_3").click(() => { showpage(3); });
+        $("#showpage_4").click(() => { showpage(4); });
+        $("#add_option").click(() => { addOption(); });
+        $("#add_from_list").click(() => { addFromList(); });
+        $("#save_options").click(() => { saveOptions(); });
+        $("#add_separator").click(() => { addSeparator(); });
+        $("#resetdefault").click(() => { resetDefault(); });
+        $("#save_otheroptions").click(() => { saveOtherOptions(); });
+        $("#save_import").click(() => { saveImport(); });
+    });
 });
