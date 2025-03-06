@@ -12,6 +12,40 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Context Menu Search Extension</title>
     <link rel="stylesheet" href="../css/projects.css">
+
+    <script>
+        /**
+         * openModal
+         * Opens the modal and displays the clicked image in full size.
+         * 
+         * @param {HTMLImageElement} img - The image element that was clicked.
+         */
+        function openModal(img) {
+            try {
+                var modal = document.getElementById("myModal");
+                var modalImg = document.getElementById("img01");
+                var captionText = document.getElementById("caption");
+                modal.style.display = "block";
+                modalImg.src = img.src;
+                captionText.innerHTML = img.alt;
+            } catch (error) {
+                console.error("Error opening modal: ", error);
+            }
+        }
+
+        /**
+         * closeModal
+         * Closes the modal.
+         */
+        function closeModal() {
+            try {
+                var modal = document.getElementById("myModal");
+                modal.style.display = "none";
+            } catch (error) {
+                console.error("Error closing modal: ", error);
+            }
+        }
+    </script>
 </head>
 <body>
 
@@ -22,6 +56,15 @@
 
     <main>
         <section id="introduction">
+            <!-- The Modal -->
+            <div style="align-items: center; display: flex; justify-content: center;">
+                <div id="myModal" class="modal" onclick="closeModal()">
+                    <span class="close" onclick="closeModal()">&times;</span>
+                    <img class="modal-content" id="img01">
+                    <div id="caption"></div>
+                </div>
+            </div>
+
             <h2>Introduction</h2>
             <p>The Context Menu Search extension allows you to quickly search selected text using various search engines directly from the context menu (right-click menu) of your browser.</p>
         </section>
@@ -30,11 +73,11 @@
             <h2>Screenshots</h2>
             <div style="display: flex; justify-content: center;">
                 <div class="screenshot" style="margin-right: 10px; text-align: center;">
-                    <img src="images/screenshot01.jpg" alt="Screenshot 1" width="320" height="200">
+                    <img src="images/screenshot01.jpg" alt="Adding a Search Engine" width="320" height="200" onclick="openModal(this)">
                     <p>Adding a Search Engine</p>
                 </div>
                 <div class="screenshot" style="text-align: center;">
-                    <img src="images/screenshot02.jpg" alt="Screenshot 2" width="320" height="200">
+                    <img src="images/screenshot02.jpg" alt="Managing Search Engine Order" width="320" height="200" onclick="openModal(this)">
                     <p>Managing Search Engine Order</p>
                 </div>
             </div>
@@ -55,16 +98,16 @@
             </ul>
             <h3>Provided Search Engines:</h3>
             <ul>
-                <li><b>Web Search:</b> Google, Ask.com, Bing Search, DuckDuckGo, Startpage, Ecosia, Yahoo! Japan, Yahoo! Search, DogPile, Metacrawler, Wolfram Alpha, Reddit.com</li>
+                <li><b>Web Search:</b> Google, Ask, Bing Search, DuckDuckGo, Startpage, Ecosia, Yahoo! Japan, Yahoo! Search, Dogpile, Metacrawler, Wolfram Alpha, Reddit</li>
                 <li><b>Development Search:</b> GitHub, Stack Overflow</li>
                 <li><b>Image Search:</b> Google Images, Bing Images, flickr</li>
-                <li><b>News:</b> Google News, Bing News, CNN, BBC World</li>
-                <li><b>Social Search:</b> Facebook, Google+, X/Twitter, Myspace</li>
+                <li><b>News:</b> Google News, Bing News, CNN, BBC World, Yahoo! News, The Guardian</li>
+                <li><b>Social Search:</b> Facebook, X/Twitter, Bluesky, Instagram, Tumblr, Google Groups, Pinterest, Myspace</li>
                 <li><b>Gaming Search:</b> Steam, Epic Games, GOG, Xbox Live, Sony PSN, Twitch</li>
-                <li><b>Music &amp; Movies:</b> Last.fm, Yahoo! Music, YouTube Music, MTV, IMDb, Rotten Tomatoes</li>
-                <li><b>Videos:</b> YouTube, Google Videos, Bing Videos, Metacafe</li>
-                <li><b>Shopping:</b> E-bay US, Amazon US, Target, Walmart, Google Products, Bing Shopping, Yahoo Shopping</li>
-                <li><b>Other:</b> Archive.org, Google Scholar, Google Definition, Wikipedia EN</li>
+                <li><b>Music &amp; Movies:</b> Spotify, Pandora, iTunes, Last.fm, Yahoo! Music, YouTube Music, Google Play Music, MTV, IMDb, Rotten Tomatoes</li>
+                <li><b>Videos:</b> YouTube, Google Videos, Bing Videos, Metacafe, Vimeo</li>
+                <li><b>Shopping:</b> E-bay US, Amazon US, Walmart, Target, Best Buy, Newegg, Google Products, Bing Shopping, Yahoo Shopping</li>
+                <li><b>Other:</b> Archive.org, Wikipedia EN, Google Definition, Google Scholar</li>
             </ul>
         </section>
 
@@ -97,6 +140,10 @@
     <footer>
         <p>&copy; <?php echo date("Y"); ?> Rathinosk. All rights reserved.</p>
     </footer>
+
+
+
+
 
 </body>
 </html>
