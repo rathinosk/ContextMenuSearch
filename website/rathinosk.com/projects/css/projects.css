@@ -1,0 +1,78 @@
+:root {
+    --background-color: #f4f4f4;
+    --text-color: #333;
+    --header-bg-color: #333;
+    --header-text-color: #fff;
+    --project-bg-color: #fff;
+    --project-border-color: #ddd;
+    --heading-color: #0056b3;
+    --footer-bg-color: #333;
+    --footer-text-color: #fff;
+    --font-family: Arial, sans-serif;
+}
+
+body {
+    font-family: var(--font-family);
+    margin: 0;
+    padding: 0;
+    background-color: var(--background-color);
+    color: var(--text-color);
+}
+
+header {
+    background-color: var(--header-bg-color);
+    color: var(--header-text-color);
+    padding: 1em 0;
+    text-align: center;
+}
+
+main {
+    padding: 20px;
+}
+
+.project {
+    background-color: var(--project-bg-color);
+    border: 1px solid var(--project-border-color);
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 5px;
+}
+
+.project h2 {
+    color: var(--heading-color);
+}
+
+.project p {
+    line-height: 1.6;
+}
+
+footer {
+    text-align: center;
+    padding: 1em 0;
+    background-color: var(--footer-bg-color);
+    color: var(--footer-text-color);
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+}
+
+section {
+    background-color: var(--project-bg-color);
+    border: 1px solid var(--project-border-color);
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 5px;
+}
+
+h2 {
+    color: var(--heading-color);
+}
+
+p {
+    line-height: 1.6;
+}
+
+ul {
+    list-style-type: square;
+    padding-left: 20px;
+}
