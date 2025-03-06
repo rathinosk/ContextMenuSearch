@@ -185,9 +185,9 @@ function looseCompareBooleanOrStrings(a, b) {
 
 /**
  * Function to handle context menu item clicks
-* @param {Object} menuInfo - Information about the clicked menu item
-* @param {Object} tab - The tab where the click occurred
-*/
+ * @param {Object} menuInfo - Information about the clicked menu item
+ * @param {Object} tab - The tab where the click occurred
+ */
 async function searchOnClick(menuInfo, tab) {
     console.log(menuInfo);
     console.log(tab);
@@ -231,13 +231,38 @@ async function searchOnClick(menuInfo, tab) {
         targetURL = replaceAllInstances(targetURL, "%s", encodedText);
         targetURL = replaceAllInstances(targetURL, "TESTSEARCH", encodedText);
 
-        chrome.tabs.create({
+        const createProperties = {
             url: targetURL,
             active: ask_fg,
-            index: ask_next ? tab.index + 1 : undefined,
-            openerTabId: tab.id
-        });
-    };
+        };
+
+        if (ask_next) {
+            if (Number.isInteger(tab.id) && tab.id >= 0) {
+                createProperties.index = tab.index + 1;
+                createProperties.openerTabId = tab.id;
+            } else {
+                // Get the active tab in the current window
+                const [activeTab] = await chrome.tabs.query({ active: true, currentWindow: true });
+                if (activeTab && Number.isInteger(activeTab.id) && activeTab.id >= 0) {
+                    createProperties.index = activeTab.index + 1;
+                    createProperties.openerTabId = activeTab.id;
+                } else {
+                    // If no valid active tab, open as the last tab
+                    createProperties.index = undefined;
+                }
+            }
+        } else {
+            if (Number.isInteger(tab.id) && tab.id >= 0) {
+                createProperties.openerTabId = tab.id;
+            }
+        }
+
+        try {
+            chrome.tabs.create(createProperties);
+        } catch (error) {
+            console.error("Error creating tab:", error);
+        }
+    }
 }
 
 /**

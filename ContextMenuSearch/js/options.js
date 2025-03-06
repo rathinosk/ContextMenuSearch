@@ -1,8 +1,8 @@
 /**
- * initialise
+ * initializeOptions
  * Initialize the options page.
  */
-async function initialise(){
+async function initializeOptions(){
 	showpage(1);
 	await restore_options();
 }
@@ -326,7 +326,8 @@ function showpage(page) {
  * Initialize the options page and set up event listeners.
  */
 $(document).ready(function(){ 
-    initialise();
+	generateSearchEngineList();
+    initializeOptions();
 	$(function() {
 		$("#options_list_ul").sortable({ opacity: 0.3, cursor: 'move', update: function() {
 			console.log("Reordered");

@@ -2,6 +2,6 @@
 *.7z
 *.psd
 *.pem
-
+*.bak
 .junk/
 dist/
