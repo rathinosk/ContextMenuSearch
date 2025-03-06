@@ -205,9 +205,12 @@ async function searchOnClick(menuInfo, tab) {
 
     // Loop on the output
     for (const item of split) {
+        
         // Open the link
         let targetURL = item;
-        var encodedText = menuInfo.selectionText;
+
+        // urlEncode the selection text
+        var encodedText = Encoding.urlEncode(menuInfo.selectionText); 
 
         const encodingMatch = targetURL.match(/%\{s:([^}]+)\}/);
         if (encodingMatch) {
