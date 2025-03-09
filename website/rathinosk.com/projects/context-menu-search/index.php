@@ -92,7 +92,7 @@
                 <li>Improved User Interface.</li>
                 <li>Improved Configuration Management (Google Browser Sync coming soon!)</li>
                 <li>Quickly add and remove search engines to your right-click menu.</li>
-                <li>Choose from a selection of over 50 popular search engines.</li>
+                <li>Choose from a selection of over 70 popular search engines.</li>
                 <li>Open search results in a new tab, with options to open in the foreground or background, and customize tab placement.</li>
                 <li>Effortlessly reorder your search engines within options screen.</li>
             </ul>

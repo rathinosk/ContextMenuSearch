@@ -1,13 +1,14 @@
 [
     ["-1","Google","https://www.google.com/search?q=TESTSEARCH",true],
     ["-1","Google Images","https://www.google.com/images?q=TESTSEARCH",true],
+    ["-1","","",true],
     ["-1","Amazon US","https://www.amazon.com/s/ref=nb_sb_noss?url=search-alias%3Daps&field-keywords=TESTSEARCH&x=0&y=0",true],
     ["-1","Lowe's","http://www.lowes.com/search?searchTerm=TESTSEARCH",true],
     ["-1","E-bay US","http://shop.ebay.com/?_nkw=TESTSEARCH&_sacat=See-All-Categories",true],
     ["-1","","",true],
     ["-1","Reddit","https://www.google.com/search?q=site:reddit.com+TESTSEARCH",true],
-    ["-1","Wikipedia EN","https://en.wikipedia.org/w/index.php?title=Special:Search&search=TESTSEARCH",true],
-    ["-1","YouTube","https://www.youtube.com/results?search_query=TESTSEARCH",true],
+    ["-1","Steam","https://store.steampowered.com/search/?term=TESTSEARCH",true],
     ["-1","IMDb","https://www.imdb.com/find?s=all&q=TESTSEARCH",true],
-    ["-1","Steam","https://store.steampowered.com/search/?term=TESTSEARCH",true]
+    ["-1","YouTube","https://www.youtube.com/results?search_query=TESTSEARCH",true],
+    ["-1","Wikipedia EN","https://en.wikipedia.org/w/index.php?title=Special:Search&search=TESTSEARCH",true]
 ]

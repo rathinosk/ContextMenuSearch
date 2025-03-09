@@ -72,7 +72,7 @@ function generateSearchEngineList() {
         { category: "Shopping", name: "Bing Shopping", link: "http://www.bing.com/shopping/search?q=TESTSEARCH&go=&form=QBRE" },
         { category: "Shopping", name: "Yahoo Shopping", link: "http://search.yahoo.com/search?vc=&p=TESTSEARCH" },
         { category: "Social Search", name: "Facebook", link: "http://www.facebook.com/#!/search/?q=TESTSEARCH" },
-        { category: "Social Search", name: "X/Twitter", link: "http://twitter.com/#search?q=TESTSEARCH" },
+        { category: "Social Search", name: "X/Twitter", link: "https://x.com/search?q=TESTSEARCH&src=typed_query" },
         { category: "Social Search", name: "Bluesky", link: "https://bsky.app/search?q=TESTSEARCH" },
         { category: "Social Search", name: "Instagram", link: "http://instagram.com/TESTSEARCH" },
         { category: "Social Search", name: "Tumblr", link: "http://www.tumblr.com/search/TESTSEARCH" },
