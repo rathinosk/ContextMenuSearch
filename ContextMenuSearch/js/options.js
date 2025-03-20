@@ -28,6 +28,7 @@ async function initializeOptions() {
     log("initializeOptions: Initializing options page.");
     showpage(1);
     await restoreOptions();
+    await saveOptions(); // Save options to ensure context menu is initialized - possible fix for Issue #4
 }
 
 /**

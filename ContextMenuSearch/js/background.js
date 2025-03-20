@@ -4,7 +4,7 @@ importScripts('encoding.min.js');
  * log
  * Log a message to the console with a timestamp.
  * @param {string} txt - The message to log.
- */
+  */
 function log(txt) {
     try {
         let now = new Date();
@@ -23,14 +23,18 @@ chrome.runtime.onInstalled.addListener(async () => {
         console.log('Got storage.local ', result);
         if (chrome.runtime.lastError || !result._allSearch || (result._allSearch?.length ?? 0) < 1) {
             // If data is not found, set default configuration and load context menu items
-            chrome.storage.local.set({ _allSearch: DEFAULT_CONFIG }, () => {
-                if (chrome.runtime.lastError) {
-                    console.error('Error setting default configuration:', chrome.runtime.lastError);
-                } else {
-                    console.log('Default configuration set.');
-                    loadContextMenuItems();
-                }
-            });
+            try {
+                chrome.storage.local.set({ _allSearch: DEFAULT_CONFIG }, () => {
+                    if (chrome.runtime.lastError) {
+                        console.error('Error setting default configuration:', chrome.runtime.lastError);
+                    } else {
+                        console.log('Default configuration set.');
+                        loadContextMenuItems();
+                    }
+                });
+            } catch (error) {
+                console.error('Error setting default configuration:', error);
+            }
         } else {
             loadContextMenuItems();
         }
@@ -47,11 +51,11 @@ let isExecutingLoadContextMenuItems = false;
 let loadContextMenuItemsQueue = [];
 
 /**
- * Function to load context menu items
- * @returns {Promise<void>} - A promise that resolves when the context menu items are loaded
- * @throws {Error} - If _allSearch is undefined
- * @throws {Error} - If an error occurs while clearing existing items
-**/
+ * loadContextMenuItems
+ * Loads context menu items based on data stored in chrome.storage.local.
+ * Prevents overlapping calls using a queue.
+ * @returns {Promise<void>}
+ */
 async function loadContextMenuItems() {
     if (isExecutingLoadContextMenuItems) {
         return new Promise((resolve, reject) => {
@@ -66,10 +70,15 @@ async function loadContextMenuItems() {
 
         console.log("Clearing existing items");
         await new Promise((resolve) => {
-            chrome.contextMenus.removeAll(() => {
-                console.log('All context menu items have been removed.');
-                resolve();
-            });
+            try {
+                chrome.contextMenus.removeAll(() => {
+                    console.log('All context menu items have been removed.');
+                    resolve();
+                });
+            } catch (e) {
+                console.error("Error removing context menus: ", e);
+                resolve(); // Resolve anyway to continue execution
+            }
         });
 
         const allData = await getAllData();
@@ -80,32 +89,44 @@ async function loadContextMenuItems() {
             throw new Error('_allSearch is undefined');
         }
 
-        const _all = JSON.parse(allData._allSearch);
-        const numentries = _all?.length ?? 0;
+        try {
+            const _all = JSON.parse(allData._allSearch);
+            const numentries = _all?.length ?? 0;
 
-        console.log(_all);
-        console.log(numentries);
+            console.log(_all);
+            console.log(numentries);
 
-        for (let i = 0; i < numentries; i++) {
-            if (_all[i][3]) {
-                if (_all[i][1] === "" && _all[i][2] === "") {
-                    // Show separator
-                    chrome.contextMenus.create({ id: i.toString(), type: "separator", contexts: ["selection"] });
+            for (let i = 0; i < numentries; i++) {
+                if (_all[i][3]) {
+                    try {
+                        if (_all[i][1] === "" && _all[i][2] === "") {
+                            // Show separator
+                            chrome.contextMenus.create({ id: i.toString(), type: "separator", contexts: ["selection"] });
+                        } else {
+                            _all[i][0] = chrome.contextMenus.create({ id: _all[i][2], title: _all[i][1], contexts: ["selection"] });
+                        }
+                    } catch (e) {
+                        console.error("Error creating context menu item: ", i, e);
+                    }
                 } else {
-                    _all[i][0] = chrome.contextMenus.create({ id: _all[i][2], title: _all[i][1], contexts: ["selection"] });
+                    _all[i][0] = -1;
                 }
-            } else {
-                _all[i][0] = -1;
             }
+        } catch (jsonError) {
+            console.error("Error parsing or processing _allSearch data:", jsonError);
         }
 
         const askOptions = looseCompareBooleanOrStrings(await getItem("_askOptions"), true);
 
         if (askOptions) {
-            // Show separator
-            chrome.contextMenus.create({ id: "separator", type: "separator", contexts: ["selection"] });
-            // Show the item for linking to extension options
-            chrome.contextMenus.create({ id: "options.html", title: "Options", contexts: ["selection"] });
+            try {
+                // Show separator
+                chrome.contextMenus.create({ id: "separator", type: "separator", contexts: ["selection"] });
+                // Show the item for linking to extension options
+                chrome.contextMenus.create({ id: "options.html", title: "Options", contexts: ["selection"] });
+            } catch (e) {
+                console.error("Error creating options context menu items: ", e);
+            }
         }
     } catch (error) {
         console.error('Error in loadContextMenuItems:', error);
@@ -119,47 +140,65 @@ async function loadContextMenuItems() {
 }
 
 /**
- * Function to detect the encoding of a given text
- * @param {string} text - The text to detect encoding for
- * @returns {string} - The detected encoding or 'UTF-8'
+ * detectEncoding
+ * Detects the encoding of a given text.
+ * @param {string} text - The text to detect encoding for.
+ * @returns {string} - The detected encoding or 'UTF-8' if detection fails.
  */
 function detectEncoding(text) {
-    const detected = Encoding.detect(text);
-    return detected || 'UTF-8';
+    try {
+        const detected = Encoding.detect(text);
+        return detected || 'UTF-8';
+    } catch (error) {
+        console.error("Error detecting encoding: ", error);
+        return 'UTF-8';
+    }
 }
 
 /**
- * Function to convert text encoding
- * @param {string} text - The text to convert
- * @param {string} toEncoding - The target encoding
- * @param {string} [fromEncoding=null] - The source encoding (optional)
- * @returns {string} - The converted text
+ * convertEncoding
+ * Converts text encoding from one format to another.
+ * @param {string} text - The text to convert.
+ * @param {string} toEncoding - The target encoding.
+ * @param {string} [fromEncoding=null] - The source encoding (optional). If null, it will attempt to detect the encoding.
+ * @returns {string} - The converted text.
  */
 function convertEncoding(text, toEncoding, fromEncoding = null) {
-    const detectedEncoding = fromEncoding || detectEncoding(text);
+    try {
+        const detectedEncoding = fromEncoding || detectEncoding(text);
 
-    return Encoding.convert(text, {
-        to: toEncoding,
-        from: detectedEncoding
-    });
+        return Encoding.convert(text, {
+            to: toEncoding,
+            from: detectedEncoding
+        });
+    } catch (error) {
+        console.error("Error converting encoding: ", error);
+        return text; // Return the original text on error
+    }
 }
 
 /**
- * Function to get all data from chrome.storage.local
- * @returns {Promise<Object>} - A promise that resolves to the data object
+ * getAllData
+ * Retrieves all data from chrome.storage.local.
+ * @returns {Promise<Object>} - A promise that resolves to the data object.
  */
 async function getAllData() {
     return new Promise((resolve, reject) => {
-        chrome.storage.local.get((result) => {
-            // The result is an object containing the keys and their values
-            if (chrome.runtime.lastError) {
-                console.log("getAllData error ", chrome.runtime.lastError);
-                reject(chrome.runtime.lastError); // Reject the promise if there's an error
-            } else {
-                console.log("getAllData success ", result);
-                resolve(result); // Resolve the promise with the result object
-            }
-        });
+        try {
+            chrome.storage.local.get((result) => {
+                // The result is an object containing the keys and their values
+                if (chrome.runtime.lastError) {
+                    console.log("getAllData error ", chrome.runtime.lastError);
+                    reject(chrome.runtime.lastError); // Reject the promise if there's an error
+                } else {
+                    console.log("getAllData success ", result);
+                    resolve(result); // Resolve the promise with the result object
+                }
+            });
+        } catch (error) {
+            console.error("Error in getAllData:", error);
+            reject(error); // Reject the promise if there's an error
+        }
     });
 }
 
@@ -167,40 +206,60 @@ async function getAllData() {
 chrome.contextMenus.onClicked.addListener(searchOnClick);
 
 /**
- * Function to replace all instances of a search value in a text
- * @param {string} text - The text to search within
- * @param {string} searchValue - The value to search for
- * @param {string} replaceValue - The value to replace with
- * @returns {string} - The modified text
+ * replaceAllInstances
+ * Replaces all instances of a search value in a text with a replace value.
+ * @param {string} text - The text to search within.
+ * @param {string} searchValue - The value to search for.
+ * @param {string} replaceValue - The value to replace with.
+ * @returns {string} - The modified text.
  */
 function replaceAllInstances(text, searchValue, replaceValue) {
-    const regex = new RegExp(searchValue, 'g');
-    return text.replace(regex, replaceValue);
+    try {
+        const regex = new RegExp(searchValue, 'g');
+        return text.replace(regex, replaceValue);
+    } catch (error) {
+        console.error("Error replacing all instances: ", error);
+        return text; // Return the original text on error
+    }
 }
 
 /**
- * Function to split text by space
- * @param {string} text - The text to split
- * @returns {string[]} - The array of split text
+ * splitBySpace
+ * Splits text by space.
+ * @param {string} text - The text to split.
+ * @returns {string[]} - The array of split text.
  */
 function splitBySpace(text) {
-    return text.split(" ");
+    try {
+        return text.split(" ");
+    } catch (error) {
+        console.error("Error splitting by space: ", error);
+        return [text]; // Return the original text as a single element array on error
+    }
 }
 
 /**
- * Function to loosely compare boolean or string values
- * @param {any} a - The first value
- * @param {any} b - The second value
- * @returns {boolean} - True if values are loosely equal, otherwise false
+ * looseCompareBooleanOrStrings
+ * Compares two values (boolean or string) loosely.
+ * @param {any} a - The first value.
+ * @param {any} b - The second value.
+ * @returns {boolean} - True if values are loosely equal, otherwise false.
  */
 function looseCompareBooleanOrStrings(a, b) {
-    return a.toString().toLowerCase() === b.toString().toLowerCase();
+    try {
+        return a.toString().toLowerCase() === b.toString().toLowerCase();
+    } catch (error) {
+        console.error("Error comparing values: ", error);
+        return false; // Return false on error
+    }
 }
 
 /**
- * Function to handle context menu item clicks
- * @param {Object} menuInfo - Information about the clicked menu item
- * @param {Object} tab - The tab where the click occurred
+ * searchOnClick
+ * Handles context menu item clicks, retrieves configuration, and opens the search URL.
+ * @param {Object} menuInfo - Information about the clicked menu item.
+ * @param {Object} tab - The tab where the click occurred.
+ * @returns {void}
  */
 async function searchOnClick(menuInfo, tab) {
     console.log(menuInfo);
@@ -283,9 +342,10 @@ async function searchOnClick(menuInfo, tab) {
 }
 
 /**
- * Async function to get an item from chrome.storage.local
- * @param {string} key - The key to retrieve
- * @returns {Promise<any>} - A promise that resolves to the value of the key
+ * getItem
+ * Retrieves an item from chrome.storage.local.
+ * @param {string} key - The key to retrieve.
+ * @returns {Promise<any>} - A promise that resolves to the value of the key, or "null" if not found or on error.
  */
 async function getItem(key) {
     try {
@@ -293,6 +353,7 @@ async function getItem(key) {
         const value = result[key] !== undefined ? result[key] : "null";
         return value;
     } catch (e) {
+        console.error("Error getting item from storage: ", e);
         return "null";
     }
 }
