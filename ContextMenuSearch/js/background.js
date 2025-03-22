@@ -1,10 +1,10 @@
-importScripts('encoding.min.js');
+importScripts('encoding.min.js', 'chromeSTorage.js');
 
 /**
  * log
  * Log a message to the console with a timestamp.
  * @param {string} txt - The message to log.
-  */
+ */
 function log(txt) {
     try {
         let now = new Date();
@@ -14,34 +14,14 @@ function log(txt) {
     }
 }
 
-const DEFAULT_CONFIG = '[["-1","YouTube","http://www.youtube.com/results?search_query=TESTSEARCH",true],["-1","Bing","http://www.bing.com/search?q=TESTSEARCH",true],["-1","Bing Images","http://www.bing.com/images/search?q=TESTSEARCH",true],["-1","IMDB","http://www.imdb.com/find?s=all&q=TESTSEARCH",true],["-1","Wikipedia","http://en.wikipedia.org/wiki/Special:Search?search=TESTSEARCH&go=Go",true],["-1","Yahoo!","http://search.yahoo.com/search?vc=&p=TESTSEARCH",true],["-1","Maps","https://www.google.com/maps/search/TESTSEARCH",true]]';
-
 // Listener for when the extension is installed or updated
 chrome.runtime.onInstalled.addListener(async () => {
-    // Check if data exists in chrome.storage.local
-    chrome.storage.local.get((result) => {
-        console.log('Got storage.local ', result);
-        if (chrome.runtime.lastError || !result._allSearch || (result._allSearch?.length ?? 0) < 1) {
-            // If data is not found, set default configuration and load context menu items
-            try {
-                chrome.storage.local.set({ _allSearch: DEFAULT_CONFIG }, () => {
-                    if (chrome.runtime.lastError) {
-                        console.error('Error setting default configuration:', chrome.runtime.lastError);
-                    } else {
-                        console.log('Default configuration set.');
-                        loadContextMenuItems();
-                    }
-                });
-            } catch (error) {
-                console.error('Error setting default configuration:', error);
-            }
-        } else {
-            loadContextMenuItems();
-        }
-    });
+    // Initialize storage to migrate data and set defaults
+    await initializeStorage();
+    loadContextMenuItems();
 });
 
-// Listener for changes in chrome.storage.local
+// Listener for changes in chrome.storage
 chrome.storage.onChanged.addListener(() => {
     loadContextMenuItems();
 });
@@ -52,7 +32,7 @@ let loadContextMenuItemsQueue = [];
 
 /**
  * loadContextMenuItems
- * Loads context menu items based on data stored in chrome.storage.local.
+ * Loads context menu items based on data stored in storage.
  * Prevents overlapping calls using a queue.
  * @returns {Promise<void>}
  */
@@ -81,7 +61,9 @@ async function loadContextMenuItems() {
             }
         });
 
-        const allData = await getAllData();
+        const allData = {};
+        allData._allSearch = await getItem("_allSearch");
+        allData._askOptions = await getItem("_askOptions");
 
         console.log("loadContextMenuItems data = ", allData);
 
@@ -116,7 +98,7 @@ async function loadContextMenuItems() {
             console.error("Error parsing or processing _allSearch data:", jsonError);
         }
 
-        const askOptions = looseCompareBooleanOrStrings(await getItem("_askOptions"), true);
+        const askOptions = looseCompareBooleanOrStrings(allData._askOptions, true);
 
         if (askOptions) {
             try {
@@ -247,6 +229,10 @@ function splitBySpace(text) {
  */
 function looseCompareBooleanOrStrings(a, b) {
     try {
+        // Check if either a or b is undefined or null
+        if (a === undefined || a === null || b === undefined || b === null) {
+            return a == b; // Use loose equality to handle null == undefined
+        }
         return a.toString().toLowerCase() === b.toString().toLowerCase();
     } catch (error) {
         console.error("Error comparing values: ", error);
@@ -278,12 +264,12 @@ async function searchOnClick(menuInfo, tab) {
 
     // Loop on the output
     for (const item of split) {
-        
+
         // Open the link
         let targetURL = item;
 
         // urlEncode the selection text
-        var encodedText = Encoding.urlEncode(menuInfo.selectionText); 
+        var encodedText = Encoding.urlEncode(menuInfo.selectionText);
 
         const encodingMatch = targetURL.match(/%\{s:([^}]+)\}/);
         if (encodingMatch) {

@@ -23,15 +23,15 @@
 						<div align="right">
 							<h1 class="style1">Context Menu Search</h1>
 							<button class="top_options" id="showpage_1">
-								Add search engines
+								Search Engines
 							</button>
 							|
 							<button class="top_options" id="showpage_2">
-								Manage current options
+								Manage Menu
 							</button>
 							|
 							<button class="top_options" id="showpage_3">
-								Other options
+								Advanced Options
 							</button>
 							|
 							<button class="top_options" id="showpage_4">
@@ -39,7 +39,7 @@
 							</button>
 							<br />
 							<p>
-								For suggestions and bug-reports, open an issue: <a href="https://github.com/rathinosk/ContextMenuSearch/issues" target="_blank">here</a>
+								For suggestions and bug-reports, open an issue: <a href="https://github.com/rathinosk/ContextMenuSearch/issues" target="_blank">here</a>&nbsp;&nbsp;&nbsp;&nbsp;
 							</p>
 						</div>
 
@@ -54,7 +54,7 @@
 			<div align="center">
 
 				<div id="page1">
-					<h3>Add Search Engines Manually</h3>
+					<h3>Search Engines</h3>
 					<p>
 						To add a new search engine, replace the search term in the search engine's URL with "TESTSEARCH" and copy the entire URL (including http:// or https://) into the 'Link' field below.
 						<br />
@@ -81,7 +81,7 @@
 					<br />
 					<table>
 						<tr>
-							<th>Display name</th>
+							<th>Display Name</th>
 							<th>Link</th>
 						</tr>
 						<tr>
@@ -93,7 +93,7 @@
 							</td>
 						</tr>
 					</table>
-					<button id="add_option">
+					<button id="add_custom">
 						Add new option
 					</button>
 					<div id="status_addmanually"></div>
@@ -127,7 +127,7 @@
 					</ul>
 					<br>
 
-					<button id="save_options">
+					<button id="save_menu_config">
 						Save Configuration
 					</button>
 					<button id="add_separator">
@@ -159,7 +159,7 @@
 							<td>Show a link to extension options at the bottom of the context menu</td>
 						</tr>
 					</table>
-					<button id="save_otheroptions">
+					<button id="save_menu_options">
 						Save Options
 					</button>
 					<div id="status_otheroptions"></div>
@@ -185,7 +185,7 @@
 						Click the button below to reset all options to the default values.
 					</p>
 					<br />
-					<button id="resetdefault">
+					<button id="reset_default">
 						Reset Configuration
 					</button>
 					<br />
@@ -195,11 +195,15 @@
 
 					<div class="contain">
 						<h2>About Context Menu Search</h2>
-						<h3>
-							Version 1.0.3
+						<h3 id="extension_version">
+							Version 1.1.0
 						</h3>
 						<p>
-							Developer: <a href="https://rathinosk.com/" target="_blank">Rathinosk</a>
+							<a href="https://rathinosk.com/main/cms-ext" target="_blank">Project Page</a>
+							|
+							<a href="https://rathinosk.com/main/cms-privacy" target="_blank">Privacy Policy</a>
+							|
+							<a href="https://github.com/rathinosk/ContextMenuSearch" target="_blank">Github Repository</a>
 							|
 							<a href="https://chromewebstore.google.com/detail/context-menu-search/jiemcgfaaankhcphdbfbilkldedojieb?hl=en" target="_blank">Chrome Web Store Page</a>
 						</p>
@@ -209,57 +213,24 @@
 							This extension does not communicate with any websites or services -- only the search engine you choose is contacted.
 						</p>
 						<div align="left">
-							<h4>Change-log</h4>
-							<p>
-								<b>1.0.3</b>: Minor bug-fixes and improvements.
-								<ul>
-									<li>Possible fix for Issue #4 - Extension fails to load correctly on browser startup.</li>
-									<li>Added additional exception handling to the context meny background handler.</li>
-								</ul>
-							</p>
-							<br />
-							<p>
-								<b>1.0.2</b>: Minor bug-fixes and improvements.
-								<ul>
-									<li>Fixed a bug where the extension would not load the configuration if certain options were missing.</li>
-									<li>Removed unneeded permissions from the extension definition.</li>
-								</ul>
-							</p>
-							<br />
-							<p>
-								<b>1.0.1</b>: Minor bug-fixes and improvements.
-								<ul>
-									<li>Improved error handling and increased console logging.</li>
-									<li>Added a new option to reset all options to the default values.</li>
-								</ul>
-							</p>
-							<br />
-							<p>
-								<b>1.0.0</b>: This is the first public release -- a major update with numerous bug fixes, new features and improvements.<br />
-								<ul>
-									<li>Revamped tab handler -- fixed bug where search did not work from within a PDF viewer tab.</li>
-									<li>Fixed multiple scenarios that caused the extension to not load the configuration. Reloading will generally fix most configuration loading problems.</li>
-									<li>Fixed the option to show "Options..." at the bottom of the context menu.</li>
-								</ul>
-							</p>
-							<br />
-							<p>
-								<b>pre-1.0.0</b>: Internal working versions with refactoring and bug-fixes to the original (v2.99) Context Menu Search extension.<br/>
-								<i>These versions were not released to the Chrome Web Store.</i>
-
-							</p>
-							<br />
-							<p>
-								For suggestions and bug-reports, open an issue <a href="https://github.com/rathinosk/ContextMenuSearch/issues" target="_blank">here</a>
-							</p>
+							<h2>Change Log</h2>
+							<iframe src="changelog.html" class="changelog-container" width="100%" height="300px"></iframe>
 						</div>
+						<br />
+						<p>
+							For suggestions and bug-reports, open an issue <a href="https://github.com/rathinosk/ContextMenuSearch/issues" target="_blank">here</a>
+						</p>
 					</div>
 				</div>
-
 				<hr />
-
+				<p id="storage_type">
+					Storage Type: Determining...
+				</p>
+				<br />
+				<p>
+					<b>Disclaimer:</b> This extension is provided as-is, without any warranty or guarantee of any kind. Use at your own risk.
+				</p>
 			</div>
-
 			<div id="toast"></div>
 		</div>
 	</body>

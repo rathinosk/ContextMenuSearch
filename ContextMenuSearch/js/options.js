@@ -6,6 +6,9 @@
  * and adding new search engines.
  */
 
+// Import storage functions
+// const { setItem, getItem, clearStorage, initializeStorage } = chrome.extension.getBackgroundPage();
+
 /**
  * log
  * Log a message to the console with a timestamp.
@@ -29,6 +32,8 @@ async function initializeOptions() {
     showpage(1);
     await restoreOptions();
     await saveOptions(); // Save options to ensure context menu is initialized - possible fix for Issue #4
+    await updateStorageTypeDisplay();
+    await updateVersionNumber();
 }
 
 /**
@@ -129,7 +134,7 @@ async function saveOtherOptions() {
     await setItem("_askNext", askNext);
     await setItem("_askOptions", askOptions);
 
-    showToast("Options Saved");
+    // showToast("Options Saved");
 }
 
 /**
@@ -162,7 +167,7 @@ async function saveOptions() {
     await setItem("_askBg", askBg);
     await setItem("_askNext", askNext);
 
-    showToast("Options Saved");
+    // showToast("Options Saved");
 }
 
 /**
@@ -334,7 +339,7 @@ function addSeparator(item) {
  * addOption
  * Add a new option manually.
  */
-async function addOption() {
+async function addCustom() {
     log("addOption: Adding a new option manually.");
     const newName = document.getElementById("newname").value;
     const newLink = document.getElementById("newlink").value;
@@ -366,31 +371,50 @@ async function addOption() {
  */
 function resetDefault() {
     
-    const DEFAULT_CONFIG = '[["-1","YouTube","http://www.youtube.com/results?search_query=TESTSEARCH",true],["-1","Bing","http://www.bing.com/search?q=TESTSEARCH",true],["-1","Bing Images","http://www.bing.com/images/search?q=TESTSEARCH",true],["-1","IMDB","http://www.imdb.com/find?s=all&q=TESTSEARCH",true],["-1","Wikipedia","http://en.wikipedia.org/wiki/Special:Search?search=TESTSEARCH&go=Go",true],["-1","Yahoo!","http://search.yahoo.com/search?vc=&p=TESTSEARCH",true],["-1","Maps","https://www.google.com/maps/search/TESTSEARCH",true]]';
+// Default configuration (from chromeStorage.js)
+//    const DEFAULT_CONFIG = '['
+//    + '["-1","Google","http://www.google.com/search?q=TESTSEARCH",true],'
+//    + '["-1","DuckDuckGo","https://duckduckgo.com/?q=TESTSEARCH",true],'
+//    + '["-1","Maps","https://www.google.com/maps/search/TESTSEARCH",true],'
+//    + '["-1","YouTube","http://www.youtube.com/results?search_query=TESTSEARCH",true],'
+//    + '["-1","","",true],'
+//    + '["-1","E-bay US","http://shop.ebay.com/?_nkw=TESTSEARCH&_sacat=See-All-Categories",true],'
+//    + '["-1","Amazon US","http://www.amazon.com/s/ref=nb_sb_noss?url=search-alias%3Daps&field-keywords=TESTSEARCH&x=0&y=0",true],'
+//    + '["-1","Steam","https://store.steampowered.com/search/?term=TESTSEARCH",true],'
+//    + '["-1","","",true],'
+//    + '["-1","GitHub","https://github.com/search?q=TESTSEARCH",true],'
+//   + '["-1","IMDB","http://www.imdb.com/find?s=all&q=TESTSEARCH",true],'
+//    + '["-1","Wikipedia EN","http://en.wikipedia.org/w/index.php?title=Special:Search&search=TESTSEARCH",true]'
+//    + ']';
 
     log("resetDefault: Resetting to default options.");
 
-    // clearChromeStorage();
-    
-    chrome.storage.local.set({ _allSearch: DEFAULT_CONFIG }, () => {
-        if (chrome.runtime.lastError) {
-            log(`resetDefault: Error setting default configuration: ${chrome.runtime.lastError}`);
-            showToast('Error resetting default configuration.');
-        } else {
+    // Display a confirmation dialog
+    if (confirm("Are you sure you want to reset all options to default? This action cannot be undone.")) {
+        // clearChromeStorage();
+        
+        setItem("_allSearch", DEFAULT_CONFIG)
+        .then(() => {
             log('resetDefault: Default configuration set.');
             showToast('Options reset to default.');
             restoreOptions(); // Reload options to reflect the reset
-        }
-    });
-
+        })
+        .catch(error => {
+            log(`resetDefault: Error setting default configuration: ${error}`);
+            showToast('Error resetting default configuration.');
+        });
+    } else {
+        log("resetDefault: Reset cancelled by user.");
+        showToast("Reset cancelled.");
+    }
 }
 
 /**
- * addFromList
+ * addBuiltIn
  * Add options from a predefined list.
  */
-async function addFromList() {
-    log("addFromList: Adding options from a predefined list.");
+async function addBuiltIn() {
+    log("addBuiltIn: Adding options from a predefined list.");
     try {
         const numOptions = document.getElementById("numoptions").value;
 
@@ -421,7 +445,7 @@ async function addFromList() {
         showToast("New Items Added");
         setTimeout(() => { showpage(2); }, 1250);
     } catch (error) {
-        log(`addFromList: Error adding items from list: ${error}`);
+        log(`addBuiltIn: Error adding items from list: ${error}`);
         showToast('An error occurred while adding search engines.');
     }
 }
@@ -439,27 +463,72 @@ function showpage(page) {
 }
 
 /**
+ * updateStorageTypeDisplay
+ * Updates the storage type display on the About page.
+ */
+async function updateStorageTypeDisplay() {
+    log("updateStorageTypeDisplay: Updating storage type display.");
+    const storageTypeElement = document.getElementById("storage_type");
+    try {
+        const storageArea = getStorageArea();
+        const storageType = storageArea === chrome.storage.sync ? "Chrome Sync" : "Local";
+        storageTypeElement.textContent = `Storage Type: ${storageType}`;
+    } catch (error) {
+        log(`updateStorageTypeDisplay: Error determining storage type: ${error}`);
+        storageTypeElement.textContent = "Storage Type: Error determining storage type";
+    }
+}
+
+/**
+ * updateVersionNumber
+ * Updates the version number on the About page to match the manifest.json version.
+ */
+async function updateVersionNumber() {
+    log("updateVersionNumber: Updating version number display.");
+    const versionElement = document.getElementById("extension_version");
+    try {
+        const manifestData = chrome.runtime.getManifest();
+        const version = manifestData.version;
+        versionElement.textContent = `Version ${version}`;
+    } catch (error) {
+        log(`updateVersionNumber: Error getting manifest info: ${error}`);
+        versionElement.textContent = "Version: Error determining version";
+    }
+}
+
+/**
  * Document ready function
  * Initialize the options page and set up event listeners.
  */
 $(document).ready(function() {
     generateSearchEngineList();
-    initializeOptions();
+    initializeStorage().then(() => {
+        initializeOptions();
+        updateStorageTypeDisplay();
+        updateVersionNumber();
+    });
     $(function() {
         $("#options_list_ul").sortable({ opacity: 0.3, cursor: 'move', update: function() {
             log("$(document).ready: Reordered options list.");
         }});
 
+        // Page Navigation
         $("#showpage_1").click(() => { showpage(1); });
         $("#showpage_2").click(() => { showpage(2); });
         $("#showpage_3").click(() => { showpage(3); });
         $("#showpage_4").click(() => { showpage(4); });
-        $("#add_option").click(() => { addOption(); });
-        $("#add_from_list").click(() => { addFromList(); });
-        $("#save_options").click(() => { saveOptions(); });
+
+        // Search Engines Page
+        $("#add_custom").click(() => { addCustom(); });
+        $("#add_built_in").click(() => { addBuiltIn(); });
+
+        // Manage Menu Page
         $("#add_separator").click(() => { addSeparator(); });
-        $("#resetdefault").click(() => { resetDefault(); });
-        $("#save_otheroptions").click(() => { saveOtherOptions(); });
+        $("#save_menu_config").click(() => { saveOptions(); showToast("Menu Configuration Saved"); });
+
+        // Other Options Page
+        $("#save_menu_options").click(() => { saveOtherOptions(); showToast("Options Saved"); });
         $("#save_import").click(() => { saveImport(); });
+        $("#reset_default").click(() => { resetDefault(); });
     });
 });

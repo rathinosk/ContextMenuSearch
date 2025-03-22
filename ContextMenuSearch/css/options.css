@@ -2,7 +2,7 @@
     --main-bg-color: #333;
     --secondary-bg-color: #444;
     --text-color: #ccc;
-    --hover-text-color: #fff;
+    --hover-text-color: ##000;
     --border-color: #555;
     --hover-border-color: #666;
     --alt-row-bg-color: #444;
@@ -11,6 +11,10 @@
     --button-hover-text-color: #fff;
     --link-color: #ff0;
     --link-hover-color: #fff;
+    --active-bg-color: #fff;
+    --active-text-color: #000;
+    --inactive-bg-color: #ddd;
+    --inactive-text-color: #222;
 }
 
 div.contain {
@@ -126,11 +130,12 @@ input, select, textarea {
     font: 0.8em Verdana, Helvetica, sans-serif;
 }
 input:focus, select:focus, textarea:focus {
-    color: var(--hover-text-color);
-    background: var(--secondary-bg-color);
+    color: var(--active-text-color);
+    background: var(--active-bg-color);
 }
 input:hover, select:hover, textarea:hover {
-    background: var(--text-color);
+    color: var(--inactive-text-color);
+    background: var(--inactive-bg-color);
 }
 
 .floatleft {
@@ -304,3 +309,28 @@ button:hover {
     text-align: left;
 }
 
+/* changelog iFrame*/
+.changelog-container iframe {
+    border: 1px solid #D3D3D3;
+}
+
+.changelog-container div {
+    background-color: var(--secondary-bg-color);
+    color: var(--text-color);
+    padding: 4px !important;
+    border: var(--border-color) solid 1px;
+    border-radius: 12px 0px 0px 12px;
+}
+
+.changelog-container ul {
+    list-style-type: none;
+    padding-left: 1.2em; 
+}
+
+.changelog-container li {
+    list-style: none;
+    margin: 0;
+    padding: 4px;
+    width: 95%;
+    height: auto;
+}
