@@ -1,7 +1,7 @@
 Context Menu Search
 =================
 
-Context Menu Search is a powerful Chrome extension that enhances your browsing experience by allowing you to add multiple search engines to the right-click context menu. This extension provides a convenient way to search for selected text using your preferred search engines directly from the context menu.
+Context Menu Search is a powerful Chrome/Edge extension that enhances your browsing experience by allowing you to add multiple search engines to the right-click context menu. This extension provides a convenient way to search for selected text using your preferred search engines directly from the context menu.
 
 ## Features
 
@@ -14,7 +14,9 @@ Context Menu Search is a powerful Chrome extension that enhances your browsing e
 
 ## Installation
 
-Install Context Menu Search from the Chrome Web Store: [Context Menu Search](https://chromewebstore.google.com/detail/context-menu-search/jiemcgfaaankhcphdbfbilkldedojieb?hl=en)
+Install Context Menu Search from: 
+- Chrome Web Store: [Context Menu Search](https://chromewebstore.google.com/detail/context-menu-search/jiemcgfaaankhcphdbfbilkldedojieb?hl=en)
+- Edge Web Store: {COMING SOON} [Context Menu Search](https://microsoftedge.microsoft.com/addons/detail/context-menu-search/endcepcjbpjjpbapcccldpjoapkjiccd)
 
 ## Usage
 
