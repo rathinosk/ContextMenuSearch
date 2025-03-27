@@ -1,7 +1,7 @@
 {
    "manifest_version": 3,
    "name": "Context Menu Search",
-   "version": "1.1.0",
+   "version": "1.1.2",
    "description": "Use the right-click context menu to search selected text with different search engines instantly.",
    "default_locale": "en",
    "minimum_chrome_version": "88.0.0.0",

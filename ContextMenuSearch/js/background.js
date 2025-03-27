@@ -1,39 +1,59 @@
 importScripts('encoding.min.js', 'chromeSTorage.js');
 
 /**
- * log
- * Log a message to the console with a timestamp.
- * @param {string} txt - The message to log.
+ * initialize
+ * Initializes the extension by setting up storage and loading context menu items.
+ * @returns {Promise<void>}
  */
-function log(txt) {
+async function initialize() {
     try {
-        let now = new Date();
-        console.log(now.toLocaleTimeString() + ": " + txt);
-    } catch (e) {
-        console.error("Error during logging: ", e);
+        await initializeStorage();
+        await loadContextMenuItems();
+    } catch (error) {
+        console.error("Initialization failed:", error);
     }
 }
 
 // Listener for when the extension is installed or updated
-chrome.runtime.onInstalled.addListener(async () => {
-    // Initialize storage to migrate data and set defaults
-    await initializeStorage();
-    loadContextMenuItems();
-});
+chrome.runtime.onInstalled.addListener(initialize);
 
 // Listener for changes in chrome.storage
-chrome.storage.onChanged.addListener(() => {
-    loadContextMenuItems();
+chrome.storage.onChanged.addListener(loadContextMenuItems);
+
+// Listener for when the browser starts
+chrome.runtime.onStartup.addListener(async () => {
+    log("Browser startup detected.");
+    await initialize();
 });
 
-// Ensure loadContextMenuItems calls are not overlapping
+// Listener for when a tab is activated
+chrome.tabs.onActivated.addListener(async () => {
+    log("Tab activated.");
+    await initialize();
+});
+
+// Listener for when a new tab is created
+chrome.tabs.onCreated.addListener(async () => {
+    log("Tab created.");
+    await initialize();
+});
+
+// Listener for when the browser window focus changes
+chrome.windows.onFocusChanged.addListener(async (windowId) => {
+    if (windowId !== chrome.windows.WINDOW_ID_NONE) {
+        log("Window focus changed.");
+        await initialize();
+    }
+});
+
+// Flag to prevent overlapping calls to loadContextMenuItems
 let isExecutingLoadContextMenuItems = false;
 let loadContextMenuItemsQueue = [];
 
 /**
  * loadContextMenuItems
  * Loads context menu items based on data stored in storage.
- * Prevents overlapping calls using a queue.
+ * Uses a queue to prevent overlapping calls.
  * @returns {Promise<void>}
  */
 async function loadContextMenuItems() {
@@ -46,70 +66,20 @@ async function loadContextMenuItems() {
     isExecutingLoadContextMenuItems = true;
 
     try {
-        console.log("loadContextMenuItems called");
+        log("loadContextMenuItems called");
 
-        console.log("Clearing existing items");
-        await new Promise((resolve) => {
-            try {
-                chrome.contextMenus.removeAll(() => {
-                    console.log('All context menu items have been removed.');
-                    resolve();
-                });
-            } catch (e) {
-                console.error("Error removing context menus: ", e);
-                resolve(); // Resolve anyway to continue execution
-            }
-        });
+        // Clear existing context menu items
+        await clearContextMenuItems();
 
-        const allData = {};
-        allData._allSearch = await getItem("_allSearch");
-        allData._askOptions = await getItem("_askOptions");
+        // Retrieve all necessary data from storage
+        const allData = await getAllSearchData();
 
-        console.log("loadContextMenuItems data = ", allData);
+        // Process and create context menu items
+        await processContextMenuItems(allData);
 
-        if (!allData._allSearch) {
-            throw new Error('_allSearch is undefined');
-        }
+        // Add options item if enabled
+        await addOptionsContextMenuItem(allData._askOptions);
 
-        try {
-            const _all = JSON.parse(allData._allSearch);
-            const numentries = _all?.length ?? 0;
-
-            console.log(_all);
-            console.log(numentries);
-
-            for (let i = 0; i < numentries; i++) {
-                if (_all[i][3]) {
-                    try {
-                        if (_all[i][1] === "" && _all[i][2] === "") {
-                            // Show separator
-                            chrome.contextMenus.create({ id: i.toString(), type: "separator", contexts: ["selection"] });
-                        } else {
-                            _all[i][0] = chrome.contextMenus.create({ id: _all[i][2], title: _all[i][1], contexts: ["selection"] });
-                        }
-                    } catch (e) {
-                        console.error("Error creating context menu item: ", i, e);
-                    }
-                } else {
-                    _all[i][0] = -1;
-                }
-            }
-        } catch (jsonError) {
-            console.error("Error parsing or processing _allSearch data:", jsonError);
-        }
-
-        const askOptions = looseCompareBooleanOrStrings(allData._askOptions, true);
-
-        if (askOptions) {
-            try {
-                // Show separator
-                chrome.contextMenus.create({ id: "separator", type: "separator", contexts: ["selection"] });
-                // Show the item for linking to extension options
-                chrome.contextMenus.create({ id: "options.html", title: "Options", contexts: ["selection"] });
-            } catch (e) {
-                console.error("Error creating options context menu items: ", e);
-            }
-        }
     } catch (error) {
         console.error('Error in loadContextMenuItems:', error);
     } finally {
@@ -117,6 +87,97 @@ async function loadContextMenuItems() {
         if (loadContextMenuItemsQueue.length > 0) {
             const nextCall = loadContextMenuItemsQueue.shift();
             loadContextMenuItems().then(nextCall.resolve).catch(nextCall.reject);
+        }
+    }
+}
+
+/**
+ * clearContextMenuItems
+ * Clears all existing context menu items.
+ * @returns {Promise<void>}
+ */
+async function clearContextMenuItems() {
+    return new Promise((resolve) => {
+        try {
+            chrome.contextMenus.removeAll(() => {
+                log('All context menu items have been removed.');
+                resolve();
+            });
+        } catch (error) {
+            console.error("Error removing context menus: ", error);
+            resolve(); // Resolve anyway to continue execution
+        }
+    });
+}
+
+/**
+ * getAllSearchData
+ * Retrieves all search-related data from storage.
+ * @returns {Promise<Object>} - An object containing _allSearch and _askOptions.
+ */
+async function getAllSearchData() {
+    const allData = {};
+    allData._allSearch = await getItem("_allSearch");
+    allData._askOptions = await getItem("_askOptions");
+
+    log("loadContextMenuItems data = ", allData);
+
+    if (!allData._allSearch) {
+        throw new Error('_allSearch is undefined');
+    }
+    return allData;
+}
+
+/**
+ * processContextMenuItems
+ * Processes the _allSearch data to create context menu items.
+ * @param {Object} allData - The data object containing _allSearch.
+ * @returns {Promise<void>}
+ */
+async function processContextMenuItems(allData) {
+    try {
+        const _all = JSON.parse(allData._allSearch);
+        const numEntries = _all?.length ?? 0;
+
+        log(_all);
+        log(numEntries);
+
+        for (let i = 0; i < numEntries; i++) {
+            if (_all[i][3]) {
+                try {
+                    if (_all[i][1] === "" && _all[i][2] === "") {
+                        // Show separator
+                        chrome.contextMenus.create({ id: i.toString(), type: "separator", contexts: ["selection"] });
+                    } else {
+                        _all[i][0] = chrome.contextMenus.create({ id: _all[i][2], title: _all[i][1], contexts: ["selection"] });
+                    }
+                } catch (error) {
+                    console.error("Error creating context menu item: ", i, error);
+                }
+            } else {
+                _all[i][0] = -1;
+            }
+        }
+    } catch (jsonError) {
+        console.error("Error parsing or processing _allSearch data:", jsonError);
+    }
+}
+
+/**
+ * addOptionsContextMenuItem
+ * Adds the options context menu item if the askOptions setting is enabled.
+ * @param {string} askOptions - The _askOptions value from storage.
+ * @returns {Promise<void>}
+ */
+async function addOptionsContextMenuItem(askOptions) {
+    if (looseCompareBooleanOrStrings(askOptions, true)) {
+        try {
+            // Show separator
+            chrome.contextMenus.create({ id: "separator", type: "separator", contexts: ["selection"] });
+            // Show the item for linking to extension options
+            chrome.contextMenus.create({ id: "options.html", title: "Options", contexts: ["selection"] });
+        } catch (error) {
+            console.error("Error creating options context menu items: ", error);
         }
     }
 }
@@ -170,10 +231,10 @@ async function getAllData() {
             chrome.storage.local.get((result) => {
                 // The result is an object containing the keys and their values
                 if (chrome.runtime.lastError) {
-                    console.log("getAllData error ", chrome.runtime.lastError);
+                    log("getAllData error ", chrome.runtime.lastError);
                     reject(chrome.runtime.lastError); // Reject the promise if there's an error
                 } else {
-                    console.log("getAllData success ", result);
+                    log("getAllData success ", result);
                     resolve(result); // Resolve the promise with the result object
                 }
             });
@@ -248,29 +309,42 @@ function looseCompareBooleanOrStrings(a, b) {
  * @returns {void}
  */
 async function searchOnClick(menuInfo, tab) {
-    console.log(menuInfo);
-    console.log(tab);
+    log(menuInfo);
+    log(tab);
 
-    const askFg = !looseCompareBooleanOrStrings(await getItem("_askBg"), true);
-    const askNext = looseCompareBooleanOrStrings(await getItem("_askNext"), true);
+    try {
+        const askFg = !looseCompareBooleanOrStrings(await getItem("_askBg"), true);
+        const askNext = looseCompareBooleanOrStrings(await getItem("_askNext"), true);
 
-    console.log("Foreground = ", askFg);
-    console.log("Next = ", askNext);
+        log("Foreground = ", askFg);
+        log("Next = ", askNext);
 
-    const configuredLink = menuInfo.menuItemId;
+        const configuredLinks = splitBySpace(menuInfo.menuItemId);
 
-    // Split the configured link
-    const split = splitBySpace(configuredLink);
+        for (const configuredLink of configuredLinks) {
+            await openSearchUrl(configuredLink, menuInfo, tab, askFg, askNext);
+        }
+    } catch (error) {
+        console.error("Error in searchOnClick:", error);
+    }
+}
 
-    // Loop on the output
-    for (const item of split) {
+/**
+ * openSearchUrl
+ * Opens the search URL in a new tab based on the configured link and user preferences.
+ * @param {string} configuredLink - The configured link from the context menu item.
+ * @param {Object} menuInfo - Information about the clicked menu item.
+ * @param {Object} tab - The tab where the click occurred.
+ * @param {boolean} askFg - Whether to open the tab in the foreground.
+ * @param {boolean} askNext - Whether to open the tab next to the current tab.
+ * @returns {Promise<void>}
+ */
+async function openSearchUrl(configuredLink, menuInfo, tab, askFg, askNext) {
+    try {
+        let targetURL = configuredLink;
+        const encodedText = Encoding.urlEncode(menuInfo.selectionText);
 
-        // Open the link
-        let targetURL = item;
-
-        // urlEncode the selection text
-        var encodedText = Encoding.urlEncode(menuInfo.selectionText);
-
+        // Handle encoding conversion
         const encodingMatch = targetURL.match(/%\{s:([^}]+)\}/);
         if (encodingMatch) {
             const [fullMatch, encodings] = encodingMatch;
@@ -286,31 +360,27 @@ async function searchOnClick(menuInfo, tab) {
             targetURL = replaceAllInstances(targetURL, fullMatch, Encoding.urlEncode(encodedConvertText));
         }
 
-        // Replace the search term in the URL without encoding for %S
+        // Replace search terms in the URL
         targetURL = replaceAllInstances(targetURL, "NOENCODESEARCH", menuInfo.selectionText);
-
-        // Replace the search term in the URL with encoding for %s and TESTSEARCH
         targetURL = replaceAllInstances(targetURL, "%s", encodedText);
         targetURL = replaceAllInstances(targetURL, "TESTSEARCH", encodedText);
 
+        // Configure tab properties
         const createProperties = {
             url: targetURL,
             active: askFg,
         };
 
+        // Set tab index based on user preferences
         if (askNext) {
             if (Number.isInteger(tab.id) && tab.id >= 0) {
                 createProperties.index = tab.index + 1;
                 createProperties.openerTabId = tab.id;
             } else {
-                // Get the active tab in the current window
-                const [activeTab] = await chrome.tabs.query({ active: true, currentWindow: true });
+                const activeTab = await getActiveTab();
                 if (activeTab && Number.isInteger(activeTab.id) && activeTab.id >= 0) {
                     createProperties.index = activeTab.index + 1;
                     createProperties.openerTabId = activeTab.id;
-                } else {
-                    // If no valid active tab, open as the last tab
-                    createProperties.index = undefined;
                 }
             }
         } else {
@@ -319,11 +389,42 @@ async function searchOnClick(menuInfo, tab) {
             }
         }
 
-        try {
-            chrome.tabs.create(createProperties);
-        } catch (error) {
-            console.error("Error creating tab:", error);
-        }
+        // Create the new tab
+        await createTab(createProperties);
+
+    } catch (error) {
+        console.error("Error in openSearchUrl:", error);
+    }
+}
+
+/**
+ * getActiveTab
+ * Retrieves the currently active tab in the current window.
+ * @returns {Promise<chrome.tabs.Tab>} - A promise that resolves to the active tab, or null if not found.
+ */
+async function getActiveTab() {
+    try {
+        const [activeTab] = await chrome.tabs.query({ active: true, currentWindow: true });
+        return activeTab || null;
+    } catch (error) {
+        console.error("Error getting active tab:", error);
+        return null;
+    }
+}
+
+/**
+ * createTab
+ * Creates a new tab with the given properties.
+ * @param {Object} createProperties - The properties for creating the tab.
+ * @returns {Promise<chrome.tabs.Tab>} - A promise that resolves to the created tab, or null if creation fails.
+ */
+async function createTab(createProperties) {
+    try {
+        const newTab = await chrome.tabs.create(createProperties);
+        return newTab;
+    } catch (error) {
+        console.error("Error creating tab:", error);
+        return null;
     }
 }
 
