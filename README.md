@@ -16,7 +16,7 @@ Context Menu Search is a powerful Chrome/Edge extension that enhances your brows
 
 Install Context Menu Search from: 
 - Chrome Web Store: [Context Menu Search](https://chromewebstore.google.com/detail/context-menu-search/jiemcgfaaankhcphdbfbilkldedojieb?hl=en)
-- Edge Web Store: {COMING SOON} [Context Menu Search](https://microsoftedge.microsoft.com/addons/detail/context-menu-search/endcepcjbpjjpbapcccldpjoapkjiccd)
+- Edge Web Store: [Context Menu Search](https://microsoftedge.microsoft.com/addons/detail/context-menu-search/endcepcjbpjjpbapcccldpjoapkjiccd)
 
 ## Usage
 
