@@ -129,6 +129,6 @@ For any issues or feature requests, please visit the [Github Issue Tracker](http
 This project is licensed under the MIT License. See the [LICENSE](./ContextMenuSearch/LICENSE) file for details.
 
 ## Attribution
-- Original ContextMenuSearch by Ashutosh Dwivedi (https://github.com/ashutoshetw/ContextMenuSearch)
+- Original ContextMenuSearch by Ashutosh Dwivedi (https://github.com/karthik2web/ContextMenuSearch)
 - Original Encoding Code by Yuichi Sakagami (https://github.com/cti1650/ContextMenuSearch)
 - Encoding library by "polygonplanet" (https://github.com/polygonplanet/encoding.js)
